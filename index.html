@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -17,8 +18,8 @@
 <body class="bg-white text-gray-900 smooth-scroll">
 <div id="root"></div>
 
-<script type="text/babel">
-
+<!--  Babel : presets react + env -->
+<script type="text/babel" data-presets="react,env">
 const { motion, useAnimation } = window["framer-motion"];
 const { useEffect } = React;
 
@@ -168,7 +169,7 @@ const Features = () => (
       <Feature
         icon={<svg className="w-12 h-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m2 0a2 2 0 110 4h-1a2 2 0 110-4h1zM9 12a2 2 0 110 4H8a2 2 0 110-4h1z"/></svg>}
         title="Performance"
-        text="Processeur dernier cri, AI intégrée, multitâche fluide."
+        text="Processeur dernier cri, IA intégrée, multitâche fluide."
       />
       <Feature
         icon={<svg className="w-12 h-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3M5 12a7 7 0 1114 0 7 7 0 01-14 0z"/></svg>}
@@ -230,3 +231,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
+```
