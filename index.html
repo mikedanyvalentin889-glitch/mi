@@ -90,6 +90,7 @@
     <div class="panel" id="panel">
       <div class="panelbox">
         <button class="big" id="scan" disabled>⚡ SCANNER</button>
+        <div class="status" id="hint"></div>
         <div class="autorow">
           <label style="margin:0;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="auto"> Auto-scan toutes les</label>
           <select id="autoSec"><option value="20">20 s</option><option value="30" selected>30 s</option><option value="60">60 s</option></select>
@@ -114,7 +115,11 @@ $("forget").onclick = () => { keyEl.value = ""; try { localStorage.removeItem("t
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const setStatus = t => { $("status").textContent = t; };
-function refresh(){ $("scan").disabled = busy || !(stream && keyEl.value.trim()); }
+function refresh(){
+  const noKey = !keyEl.value.trim(), noShare = !stream;
+  $("scan").disabled = busy || noKey || noShare;
+  $("hint").textContent = busy ? "" : noShare ? "⚠️ Écran pas partagé : clique sur le bouton 1 de la page principale." : noKey ? "⚠️ Clé Groq manquante : colle-la sur la page principale." : "Prêt ✅ Raccourci : touche Espace.";
+}
 
 /* ---------- Partage d'écran ---------- */
 $("share").onclick = async () => {
@@ -222,11 +227,25 @@ async function analyze(b64){
   finally{ setBusy(false); }
 }
 
+let scanning = false;
 async function scanNow(){
-  if(busy) return;
+  if(busy || scanning) return;
+  scanning = true;
   try{ await analyze(await grab()); }catch(e){ showErr(e.message); }
+  finally{ scanning = false; }
 }
-$("scan").onclick = scanNow;
+/* Clic et clavier gérés par délégation, dans la page ET dans la fenêtre flottante */
+function bindPanelEvents(doc){
+  doc.addEventListener("click", e => {
+    const b = e.target && e.target.closest ? e.target.closest("#scan") : null;
+    if(b && !b.disabled) scanNow();
+  });
+  doc.addEventListener("keydown", e => {
+    const tag = (e.target && e.target.tagName) || "";
+    if(e.code === "Space" && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(tag)){ e.preventDefault(); scanNow(); }
+  });
+}
+bindPanelEvents(document);
 
 /* ---------- Auto-scan ---------- */
 function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer = null; } }
@@ -269,6 +288,8 @@ $("float").onclick = async () => {
     pipWin.document.body.style.margin = "0";
     pipWin.document.body.appendChild($("panel"));
     pipWin.document.addEventListener("paste", onPaste);
+    bindPanelEvents(pipWin.document);
+    pipWin.focus(); refresh();
     pipWin.addEventListener("pagehide", () => { $("panelHome").appendChild($("panel")); pipWin = null; });
     setStatus("Scanner flottant ouvert. Il reste au-dessus de ton écran de trading.");
   }catch(e){ setStatus("Impossible d'ouvrir la fenêtre flottante : " + e.message); }
