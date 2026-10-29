@@ -95,6 +95,8 @@
           <label style="margin:0;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="auto"> Auto-scan toutes les</label>
           <select id="autoSec"><option value="20">20 s</option><option value="30" selected>30 s</option><option value="60">60 s</option></select>
         </div>
+        <div class="autorow"><label style="margin:0;display:flex;gap:6px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="watch" style="margin-top:3px"> <span>👁 Vue continue : surveille l'écran sur ton PC et lance l'analyse quand le graphique change (pas plus souvent que le délai ci-dessus)</span></label></div>
+        <div class="autorow"><label style="margin:0;display:flex;gap:6px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="multi" checked style="margin-top:3px"> <span>Envoyer aussi les images d'il y a ~10 s et ~20 s (l'IA voit le mouvement)</span></label></div>
         <div id="result"><div class="small" style="text-align:center;color:var(--mut)">Prêt. Partage l'écran puis scanne. Tu peux aussi coller une capture avec Ctrl+V.</div></div>
       </div>
     </div>
@@ -129,17 +131,19 @@ $("share").onclick = async () => {
     stream = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:5}, audio:false});
     video.srcObject = stream; await video.play().catch(()=>{});
     stream.getVideoTracks()[0].addEventListener("ended", stopShare);
-    setStatus("Écran partagé ✅ Clique sur SCANNER quand tu veux.");
+    startTicker();
+    setStatus("Écran partagé ✅ Surveillance locale active. Clique sur SCANNER ou active la Vue continue.");
   }catch(e){ stream = null; setStatus("Partage annulé ou refusé."); }
   refresh();
 };
 function stopShare(){
   if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
   video.srcObject = null; stopAuto(); $("auto").checked = false;
+  stopTicker(); $("watch").checked = false;
   setStatus("Partage arrêté."); refresh();
 }
 
-async function grab(){
+async function grab(max = 1600, q = 0.85){
   if(!stream) throw new Error("Partage d'écran non actif. Clique sur « Partager l'écran de trading ».");
   const track = stream.getVideoTracks()[0];
   let src, w, h;
@@ -147,19 +151,19 @@ async function grab(){
     const bmp = await new ImageCapture(track).grabFrame(); src = bmp; w = bmp.width; h = bmp.height;
   } else { src = video; w = video.videoWidth; h = video.videoHeight; }
   if(!w || !h) throw new Error("Image vide. Réessaie dans une seconde.");
-  const s = Math.min(1, 1600 / Math.max(w, h));
+  const s = Math.min(1, max / Math.max(w, h));
   const c = document.createElement("canvas");
   c.width = Math.round(w * s); c.height = Math.round(h * s);
   c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
-  return c.toDataURL("image/jpeg", 0.85).split(",")[1];
+  return c.toDataURL("image/jpeg", q).split(",")[1];
 }
 
 /* ---------- Analyse ---------- */
-function buildPrompt(){
+function buildPrompt(n){
   const tf = $("tf").value === "auto" ? "AUTO: déduis-le de l'image (Pocket Option affiche la durée des bougies; sinon estime-le via l'axe du temps)" : $("tf").value;
   return `Tu es un analyste technique rapide. Voici la capture d'écran live d'une plateforme de trading Pocket Option (graphique en bougies ou en ligne).
 Contexte: timeframe = ${tf}; durées d'expiration disponibles = ${$("exp").value}.
-Analyse seulement ce qui est visible: tendance, structure (sommets/creux), supports/résistances, mèches de rejet, momentum, indicateurs affichés.
+${n > 1 ? "Tu reçois " + n + " captures du même écran, dans l'ordre chronologique: la dernière est l'instant actuel, les autres datent d'environ 10 s et 20 s avant. Sers-t'en pour juger la vitesse, l'élan et les rejets récents, mais base la décision sur l'état actuel.\n" : ""}Analyse seulement ce qui est visible: tendance, structure (sommets/creux), supports/résistances, mèches de rejet, momentum, indicateurs affichés.
 Règles strictes:
 - Sois bref: l'utilisateur doit agir en quelques secondes.
 - Si le graphique est illisible, plat, bruité, ou sans setup clair, la décision est "ATTENDRE". Ne force jamais un trade.
@@ -199,7 +203,7 @@ function setBusy(b){
   refresh();
 }
 
-async function analyze(b64){
+async function analyze(frames){
   if(busy) return;
   if(!keyEl.value.trim()){ showErr("Colle d'abord ta clé API Groq."); return; }
   setBusy(true);
@@ -212,8 +216,8 @@ async function analyze(b64){
         model, temperature:0.3, max_tokens:1500,
         response_format:{type:"json_object"},
         messages:[{role:"user",content:[
-          {type:"text",text:buildPrompt()},
-          {type:"image_url",image_url:{url:"data:image/jpeg;base64," + b64}}
+          {type:"text",text:buildPrompt(frames.length)},
+          ...frames.map(f => ({type:"image_url",image_url:{url:"data:image/jpeg;base64," + f}}))
         ]}]
       })
     });
@@ -227,13 +231,75 @@ async function analyze(b64){
   finally{ setBusy(false); }
 }
 
+/* ---------- Vue continue : surveillance locale + tampon des dernières images ---------- */
+const buf = [];                    // images gardées sur ton PC seulement
+let lastSig = null, lastStore = 0, tickWorker = null, ticking = false, lastAnalysis = 0;
+const CHANGE_THRESHOLD = 2.5;      // sensibilité: plus bas = réagit plus souvent
+
+async function tickFrame(){
+  if(!stream) return null;
+  try{
+    const track = stream.getVideoTracks()[0];
+    let src, w, h;
+    if(window.ImageCapture){ const bmp = await new ImageCapture(track).grabFrame(); src = bmp; w = bmp.width; h = bmp.height; }
+    else { src = video; w = video.videoWidth; h = video.videoHeight; }
+    if(!w || !h) return null;
+    const s = Math.min(1, 1280 / Math.max(w, h));
+    const c = document.createElement("canvas"); c.width = Math.round(w * s); c.height = Math.round(h * s);
+    c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+    const t = document.createElement("canvas"); t.width = 24; t.height = 24;
+    const tx = t.getContext("2d"); tx.drawImage(c, 0, 0, 24, 24);
+    const d = tx.getImageData(0, 0, 24, 24).data, sg = [];
+    for(let i = 0; i < d.length; i += 4) sg.push((d[i] + d[i+1] + d[i+2]) / 3);
+    let diff = 0;
+    if(lastSig){ for(let i = 0; i < sg.length; i++) diff += Math.abs(sg[i] - lastSig[i]); diff /= sg.length; }
+    lastSig = sg;
+    const now = Date.now();
+    if(now - lastStore >= 8000){
+      buf.push({t: now, b64: c.toDataURL("image/jpeg", 0.7).split(",")[1]});
+      lastStore = now; while(buf.length > 5) buf.shift();
+    }
+    return diff;
+  }catch(e){ return null; }
+}
+async function onTick(){
+  if(ticking) return; ticking = true;
+  try{
+    const diff = await tickFrame();
+    const gap = Number($("autoSec").value) * 1000;
+    if($("watch").checked && diff != null && diff > CHANGE_THRESHOLD && !busy && !scanning && Date.now() - lastAnalysis >= gap) scanNow();
+  } finally { ticking = false; }
+}
+function startTicker(){
+  stopTicker();
+  try{
+    const blob = new Blob(["setInterval(()=>postMessage(1),2000)"], {type:"text/javascript"});
+    tickWorker = new Worker(URL.createObjectURL(blob));   // le worker n'est pas ralenti quand la page est en arrière-plan
+    tickWorker.onmessage = onTick;
+  }catch(e){ tickWorker = null; }
+}
+function stopTicker(){ if(tickWorker){ tickWorker.terminate(); tickWorker = null; } buf.length = 0; lastSig = null; }
+
+async function collectFrames(){
+  const cur = await grab();
+  if(!$("multi").checked) return [cur];
+  const now = Date.now(), pick = [];
+  for(const target of [20000, 10000]){
+    let best = null, bd = 1e12;
+    for(const f of buf){ const dd = Math.abs((now - f.t) - target); if(dd < bd){ bd = dd; best = f; } }
+    if(best && bd < 6000 && !pick.includes(best)) pick.push(best);
+  }
+  return [...pick.map(f => f.b64), cur];                  // ordre chronologique, la dernière = maintenant
+}
+
 let scanning = false;
 async function scanNow(){
   if(busy || scanning) return;
-  scanning = true;
-  try{ await analyze(await grab()); }catch(e){ showErr(e.message); }
+  scanning = true; lastAnalysis = Date.now();
+  try{ await analyze(await collectFrames()); }catch(e){ showErr(e.message); }
   finally{ scanning = false; }
 }
+$("watch").onchange = () => { if($("watch").checked && !stream){ $("watch").checked = false; showErr("Partage d'abord l'écran."); } };
 /* Clic et clavier gérés par délégation, dans la page ET dans la fenêtre flottante */
 function bindPanelEvents(doc){
   doc.addEventListener("click", e => {
@@ -265,7 +331,7 @@ function onPaste(ev){
           const c = document.createElement("canvas");
           c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
           c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-          analyze(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
+          analyze([c.toDataURL("image/jpeg", 0.85).split(",")[1]]);
         };
         im.src = r.result;
       };
