@@ -51,12 +51,15 @@
   </div>
 
   <div class="card">
-    <label for="key">Clé API Anthropic</label>
+    <label for="key">Clé API Groq</label>
     <div style="display:flex;gap:8px">
-      <input id="key" type="password" placeholder="sk-ant-..." autocomplete="off">
+      <input id="key" type="password" placeholder="gsk_..." autocomplete="off">
       <button class="ghost" id="forget">Effacer</button>
     </div>
-    <div class="sub" style="margin:8px 0 0;font-size:.78rem">Stockée uniquement dans ton navigateur (localStorage). Ne la mets jamais dans le code du dépôt GitHub.</div>
+    <div class="sub" style="margin:8px 0 12px;font-size:.78rem">Tu peux réutiliser ta clé Groq (console.groq.com/keys). Stockée uniquement dans ton navigateur (localStorage). Ne la mets jamais dans le code du dépôt GitHub.</div>
+    <label for="model">Modèle Groq (doit supporter les images)</label>
+    <input id="model" value="qwen/qwen3.8-27b">
+    <div class="sub" style="margin:8px 0 0;font-size:.78rem">Attention : openai/gpt-oss-120b (celui de Jarvis) ne lit pas les images. Si erreur « model not found », prends un modèle avec vision listé sur console.groq.com/docs/vision (ex : meta-llama/llama-4-scout-17b-16e-instruct).</div>
   </div>
 
   <div class="card">
@@ -91,7 +94,7 @@
 </div>
 
 <script>
-const MODEL = "claude-sonnet-5-5";
+const DEFAULT_MODEL = "qwen/qwen3.8-27b";
 const $ = id => document.getElementById(id);
 const keyEl = $("key"), drop = $("drop"), file = $("file"), prev = $("preview"), go = $("go"), out = $("out");
 let imgB64 = null;
@@ -200,25 +203,29 @@ go.onclick = async () => {
   out.innerHTML = ""; go.disabled = true;
   const old = go.innerHTML; go.innerHTML = '<span class="spin"></span>Analyse en cours...';
   try{
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const model = ($("model").value || "").trim() || DEFAULT_MODEL;
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method:"POST",
       headers:{
         "content-type":"application/json",
-        "x-api-key": keyEl.value.trim(),
-        "anthropic-version":"2023-06-01",
-        "anthropic-dangerous-direct-browser-access":"true"
+        "authorization":"Bearer " + keyEl.value.trim()
       },
       body: JSON.stringify({
-        model: MODEL, max_tokens: 1800,
+        model: model,
+        temperature: 0.4,
+        max_tokens: 4096,
+        response_format: {type:"json_object"},
         messages:[{role:"user",content:[
-          {type:"image",source:{type:"base64",media_type:"image/jpeg",data:imgB64}},
-          {type:"text",text:buildPrompt()}
+          {type:"text",text:buildPrompt()},
+          {type:"image_url",image_url:{url:"data:image/jpeg;base64," + imgB64}}
         ]}]
       })
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data?.error?.message || ("Erreur HTTP " + res.status));
-    const txt = (data.content||[]).map(b => b.text||"").join("");
+    let txt = data?.choices?.[0]?.message?.content || "";
+    txt = txt.replace(/<think>[\s\S]*?<\/think>/g, "");
+    if(!txt) throw new Error("Réponse vide. Réessaie ou change de modèle.");
     const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
     if(a < 0 || b < 0) throw new Error("Réponse inattendue de l'IA.");
     render(JSON.parse(txt.slice(a, b+1)));
