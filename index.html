@@ -3,23 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Test sur historique</title>
+<title>Comparateur de stratégies</title>
 <style>
 :root{--bg:#eef1f4;--panel:#fff;--ink:#18263a;--mute:#66758a;--line:#d9dfe6;--buy:#0c8f7d;--sell:#c93d36;--wait:#8a6d1c}
 @media (prefers-color-scheme:dark){:root{--bg:#121a26;--panel:#1a2536;--ink:#e7edf5;--mute:#8d9cb2;--line:#2b3a50;--buy:#3fd1b9;--sell:#ff7a72;--wait:#e3c25f}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px 16px 48px}
-.wrap{max-width:860px;margin:0 auto}
+.wrap{max-width:900px;margin:0 auto}
 h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:18px;margin:26px 0 8px}
 .sub{color:var(--mute);font-size:14px;margin-bottom:18px}
-.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:16px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
 label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:4px}
 input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
 input[type=password]{min-width:220px}input[type=number]{width:90px}
 button{font:inherit;background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:9px 16px;cursor:pointer}
 button:disabled{opacity:.5;cursor:wait}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--buy);outline-offset:2px}
-.msg{padding:10px 0;color:var(--mute);font-size:14px}.err{color:var(--sell)}
+.msg{padding:6px 0;color:var(--mute);font-size:14px}.err{color:var(--sell)}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 14px;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
 th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -32,84 +33,83 @@ tr:last-child td{border-bottom:0}th{color:var(--mute);font-weight:500;font-size:
 </head>
 <body>
 <div class="wrap">
-  <h1>Test sur historique</h1>
-  <div class="sub">Rejoue les signaux du scan (EMA, RSI, MACD, Bollinger) sur les dernières bougies 1 min et mesure ce qui se serait passé.</div>
+  <h1>Comparateur de stratégies</h1>
+  <div class="sub">Trois stratégies simples testées sur le même historique forex, sur 4 paires à la fois.</div>
   <div class="ctl">
     <label>Clé Twelve Data<input id="key" type="password" autocomplete="off"></label>
-    <label>Paire<select id="pair"><option>EUR/USD</option><option>GBP/USD</option><option>USD/JPY</option><option>AUD/USD</option><option>USD/CAD</option></select></label>
+    <label>Bougies<select id="tf"><option value="5min">5 minutes</option><option value="15min">15 minutes</option></select></label>
     <label>Spread (pips)<input id="spread" type="number" step="0.1" min="0" value="0.8"></label>
-    <button id="go">Lancer le test</button>
+    <button id="go">Lancer la comparaison</button>
   </div>
-  <div class="msg" id="msg">Le test utilise 1 crédit Twelve Data.</div>
+  <div class="msg" id="msg">Coûte 4 crédits Twelve Data (EUR/USD, GBP/USD, USD/JPY, AUD/USD).</div>
   <div id="out"></div>
-  <p class="note">Les résultats viennent des prix Twelve Data, pas de ton broker. Les signaux se chevauchent d’une minute à l’autre : les chiffres sont indicatifs, pas des trades indépendants. Passé n’est pas futur.</p>
+  <p class="note">Stratégies : <b>Tendance</b> = l’EMA 9 croise l’EMA 21. <b>Retournement</b> = le RSI 14 franchit 30 ou 70. <b>Cassure</b> = le prix dépasse son plus haut ou plus bas des 20 dernières bougies. L’entrée se fait à la clôture de la bougie du signal. Les prix viennent de Twelve Data, pas de ton broker. Le passé ne garantit pas le futur.</p>
 </div>
 <script>
-const HORIZONS=[1,3,5,15];
+const PAIRS=["EUR/USD","GBP/USD","USD/JPY","AUD/USD"];
+const HC=[1,3,6,12];
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 const $=id=>document.getElementById(id);
 const ema=(a,p)=>{const k=2/(p+1),r=[a[0]];for(let i=1;i<a.length;i++)r.push(a[i]*k+r[i-1]*(1-k));return r};
-function rsi(c,p=14){
+function rsiSeries(c,p=14){
+  const r=new Array(c.length).fill(50);
   let g=0,l=0;
   for(let i=1;i<=p;i++){const d=c[i]-c[i-1];d>=0?g+=d:l-=d}
-  g/=p;l/=p;
-  for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p}
-  return l===0?100:100-100/(1+g/l);
+  g/=p;l/=p;r[p]=l===0?100:100-100/(1+g/l);
+  for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p;r[i]=l===0?100:100-100/(1+g/l)}
+  return r;
 }
-function score(c){
-  const last=c[c.length-1],e9=ema(c,9),e21=ema(c,21);
-  const m12=ema(c,12),m26=ema(c,26),macd=m12.map((v,i)=>v-m26[i]),sg=ema(macd,9);
-  const h=macd.map((v,i)=>v-sg[i]),h0=h[h.length-1],h1=h[h.length-2];
-  const w=c.slice(-20),mean=w.reduce((a,b)=>a+b,0)/20,sd=Math.sqrt(w.reduce((a,b)=>a+(b-mean)**2,0)/20);
-  const r=rsi(c);let s=0;
-  s+=e9[e9.length-1]>e21[e21.length-1]?1:-1;
-  s+=r<30?1:r>70?-1:0;
-  s+=(h0>0&&h0>h1)?1:(h0<0&&h0<h1)?-1:0;
-  s+=last<mean-2*sd?1:last>mean+2*sd?-1:0;
-  return s;
-}
+const STRATS={
+  "Tendance":c=>{const a=ema(c,9),b=ema(c,21),s=new Array(c.length).fill(0);
+    for(let i=22;i<c.length;i++){const d=a[i]-b[i],dp=a[i-1]-b[i-1];if(dp<=0&&d>0)s[i]=1;else if(dp>=0&&d<0)s[i]=-1}return s},
+  "Retournement":c=>{const r=rsiSeries(c),s=new Array(c.length).fill(0);
+    for(let i=16;i<c.length;i++){if(r[i-1]>=30&&r[i]<30)s[i]=1;else if(r[i-1]<=70&&r[i]>70)s[i]=-1}return s},
+  "Cassure":c=>{const st=new Array(c.length).fill(0),s=new Array(c.length).fill(0);
+    for(let i=21;i<c.length;i++){const w=c.slice(i-20,i),hi=Math.max(...w),lo=Math.min(...w);st[i]=c[i]>hi?1:c[i]<lo?-1:0;if(st[i]&&!st[i-1])s[i]=st[i]}return s}
+};
 $("key").value=store.get("tdkey")||"";
 $("go").onclick=async()=>{
-  const key=$("key").value.trim(),pair=$("pair").value,spread=+$("spread").value||0;
+  const key=$("key").value.trim(),tf=$("tf").value,spread=+$("spread").value||0,mins=tf==="5min"?5:15;
   const msg=$("msg");msg.className="msg";
   if(!key){msg.className="msg err";msg.textContent="Colle ta clé API Twelve Data.";return;}
   store.set("tdkey",key);
   $("go").disabled=true;$("out").innerHTML="";msg.textContent="Téléchargement des bougies…";
   try{
-    const res=await fetch("https://api.twelvedata.com/time_series?interval=1min&outputsize=5000&timezone=UTC&symbol="+encodeURIComponent(pair)+"&apikey="+encodeURIComponent(key));
+    const res=await fetch("https://api.twelvedata.com/time_series?interval="+tf+"&outputsize=5000&timezone=UTC&symbol="+encodeURIComponent(PAIRS.join(","))+"&apikey="+encodeURIComponent(key));
     const d=await res.json();
-    if(!d.values) throw new Error(d.message||"Pas de données reçues");
-    const c=d.values.map(v=>+v.close).reverse(),n=c.length;
-    if(n<300) throw new Error("Pas assez de bougies ("+n+").");
-    msg.textContent="Calcul sur "+n+" bougies…";
-    await new Promise(r=>setTimeout(r,30));
-    const pip=pair.includes("JPY")?0.01:0.0001,maxH=Math.max(...HORIZONS);
-    const sig=[];
-    for(let i=119;i<n-maxH;i++){
-      const s=score(c.slice(i-119,i+1));
-      if(Math.abs(s)>=2) sig.push({i,dir:s>0?1:-1,strong:Math.abs(s)>=3});
+    if(d.status==="error"&&!d.values) throw new Error(d.message||"Erreur API");
+    const data={};const info=[];
+    for(const p of PAIRS){
+      const x=d[p];
+      if(!x||!x.values||x.values.length<300) throw new Error("Données insuffisantes pour "+p+(x&&x.message?" : "+x.message:""));
+      data[p]=x.values.map(v=>+v.close).reverse();
+      info.push(p+" "+x.values.length+" bougies, du "+x.values[x.values.length-1].datetime.slice(0,10)+" au "+x.values[0].datetime.slice(0,10));
     }
-    const groups=[["Tous les signaux",()=>true],["Forts (±3 ou plus)",x=>x.strong],["Modérés (±2)",x=>!x.strong]];
-    let rows="",anyPos=false;
-    for(const [name,f] of groups){
-      const list=sig.filter(f);
-      for(const h of HORIZONS){
-        let w=0,l=0,sum=0;
-        for(const x of list){
-          const move=(c[x.i+h]-c[x.i])*x.dir/pip;
-          sum+=move-spread;
-          if(move>0)w++;else if(move<0)l++;
+    msg.textContent="Calcul…";await new Promise(r=>setTimeout(r,30));
+    const rows=[],good=[];
+    for(const [name,fn] of Object.entries(STRATS)){
+      const sigs={};for(const p of PAIRS)sigs[p]=fn(data[p]);
+      for(const h of HC){
+        let n=0,w=0,l=0,sum=0,pp=0;
+        for(const p of PAIRS){
+          const c=data[p],s=sigs[p],pip=p.includes("JPY")?0.01:0.0001;
+          let pn=0,ps=0;
+          for(let i=30;i<c.length-h;i++){
+            if(!s[i])continue;
+            const mv=(c[i+h]-c[i])*s[i]/pip;
+            pn++;ps+=mv-spread;
+            if(mv>0)w++;else if(mv<0)l++;
+          }
+          n+=pn;sum+=ps;if(pn>=20&&ps/pn>0)pp++;
         }
-        const cnt=list.length,wr=(w+l)?w/(w+l)*100:0,avg=cnt?sum/cnt:0;
-        if(cnt>=30&&avg>0)anyPos=true;
-        rows+=`<tr><td>${name}</td><td>${h} min</td><td>${cnt}</td><td>${wr.toFixed(1)} %</td><td class="${avg>0?"pos":"neg"}">${avg>0?"+":""}${avg.toFixed(2)}</td></tr>`;
+        const avg=n?sum/n:0,wr=(w+l)?w/(w+l)*100:0;
+        if(n>=100&&avg>0&&pp>=3)good.push(name+" ("+h*mins+" min)");
+        rows.push(`<tr><td>${name}</td><td>${h*mins} min</td><td>${n}</td><td>${wr.toFixed(1)} %</td><td class="${avg>0?"pos":"neg"}">${avg>0?"+":""}${avg.toFixed(2)}</td><td>${pp}/${PAIRS.length}</td></tr>`);
       }
     }
-    const up=c.slice(1).reduce((a,v,i)=>a+(v>c[i]?1:0),0)/(n-1)*100;
-    const first=d.values[d.values.length-1].datetime,last=d.values[0].datetime;
-    $("out").innerHTML=`<div class="box"><table><thead><tr><th>Signaux</th><th>Tenue</th><th>Nombre</th><th>Réussite</th><th>Pips nets moy.</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="verdict">${anyPos?"Certaines lignes sont positives après spread, mais l’échantillon est court (quelques jours). À confirmer sur d’autres périodes avant d’y mettre de l’argent.":"Après le spread de "+spread+" pip(s), aucune ligne n’est positive : ce signal ne montre pas d’avantage sur cette période."}</div>
-    <div class="msg">${pair} · ${n} bougies du ${first} au ${last} (UTC) · ${sig.length} signaux · bougies haussières au total : ${up.toFixed(1)} %. Réussite = signaux gagnants sur gagnants + perdants (égalités exclues). Pips nets = mouvement dans le sens du signal moins le spread.</div>`;
+    $("out").innerHTML=`<div class="box"><table><thead><tr><th>Stratégie</th><th>Tenue</th><th>Signaux</th><th>Réussite</th><th>Pips nets moy.</th><th>Paires positives</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
+    <div class="verdict">${good.length?"Positives après spread sur au moins 3 paires sur 4 : "+good.join(", ")+". C’est un début, pas une preuve : refais le test sur une autre période avant d’y mettre de l’argent.":"Aucune stratégie ne reste positive après spread sur la majorité des paires. Aucune ne montre d’avantage sur cette période."}</div>
+    <div class="msg">${info.join(" · ")}. Réussite = gagnants sur gagnants + perdants (égalités exclues). Pips nets = mouvement dans le sens du signal moins le spread de ${spread} pip(s).</div>`;
     msg.textContent="";
   }catch(e){msg.className="msg err";msg.textContent="Test impossible : "+e.message;}
   $("go").disabled=false;
