@@ -1,367 +1,119 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trade Scanner</title>
+<title>Test sur historique</title>
 <style>
-  :root{--bg:#0a0a0c;--card:#131318;--line:#25252d;--gold:#c9a24b;--txt:#ececf1;--mut:#8b8b98;--up:#2ecc8f;--down:#ff5c6c;--wait:#e0b84a}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.45}
-  .wrap{max-width:720px;margin:0 auto;padding:20px 16px 50px}
-  h1{font-size:1.5rem;margin:6px 0 2px;letter-spacing:.07em}
-  h1 span{color:var(--gold)}
-  .sub{color:var(--mut);font-size:.88rem;margin-bottom:14px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-  label{display:block;font-size:.72rem;color:var(--mut);margin:0 0 5px;text-transform:uppercase;letter-spacing:.05em}
-  input,select{width:100%;background:#0d0d11;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 11px;font-size:.92rem}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media(max-width:520px){.row{grid-template-columns:1fr}}
-  button{background:var(--gold);color:#111;border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:.95rem;cursor:pointer}
-  button:disabled{opacity:.45;cursor:not-allowed}
-  button.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
-  button.big{width:100%;padding:16px;font-size:1.15rem;letter-spacing:.06em}
-  .btns{display:flex;gap:8px;flex-wrap:wrap}
-  .btns button{flex:1;min-width:150px}
-  .warn{border-color:#4a3b17;background:#17130a;color:#d9c48a;font-size:.82rem}
-  .err{border-color:#5a1f27;background:#1a0d10;color:#ff9aa5;font-size:.88rem}
-  .status{font-size:.82rem;color:var(--mut);margin-top:8px}
-  .panel{padding:12px;background:var(--bg)}
-  .panelbox{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card)}
-  .dec{text-align:center;padding:16px 8px;border-radius:12px;font-weight:800;font-size:1.7rem;letter-spacing:.05em;border:1px solid;margin-top:10px}
-  .dec.up{color:var(--up);border-color:var(--up);background:rgba(46,204,143,.09)}
-  .dec.down{color:var(--down);border-color:var(--down);background:rgba(255,92,108,.09)}
-  .dec.wait{color:var(--wait);border-color:var(--wait);background:rgba(224,184,74,.09)}
-  .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-  .k{font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
-  .v{font-size:1rem;font-weight:600;margin-top:1px}
-  .tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:.78rem;margin:4px 5px 0 0;color:var(--gold)}
-  .small{font-size:.85rem;color:#c8c8d2;margin-top:10px}
-  .time{font-size:.72rem;color:var(--mut);text-align:right;margin-top:8px}
-  .spin{display:inline-block;width:13px;height:13px;border:2px solid #111;border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:7px}
-  @keyframes s{to{transform:rotate(360deg)}}
-  .autorow{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.8rem;color:var(--mut)}
-  .autorow select{width:auto;padding:5px 8px}
-  .autorow input{width:auto}
+:root{--bg:#eef1f4;--panel:#fff;--ink:#18263a;--mute:#66758a;--line:#d9dfe6;--buy:#0c8f7d;--sell:#c93d36;--wait:#8a6d1c}
+@media (prefers-color-scheme:dark){:root{--bg:#121a26;--panel:#1a2536;--ink:#e7edf5;--mute:#8d9cb2;--line:#2b3a50;--buy:#3fd1b9;--sell:#ff7a72;--wait:#e3c25f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px 16px 48px}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mute);font-size:14px;margin-bottom:18px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:16px}
+label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:4px}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+input[type=password]{min-width:220px}input[type=number]{width:90px}
+button{font:inherit;background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:9px 16px;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--buy);outline-offset:2px}
+.msg{padding:10px 0;color:var(--mute);font-size:14px}.err{color:var(--sell)}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 14px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:0}th{color:var(--mute);font-weight:500;font-size:13px}
+.pos{color:var(--buy);font-weight:600}.neg{color:var(--sell);font-weight:600}
+.verdict{margin:16px 0;padding:14px 16px;border-left:6px solid var(--wait);background:var(--panel);border-radius:10px}
+.note{color:var(--mute);font-size:13px;margin-top:18px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>TRADE <span>SCANNER</span></h1>
-  <div class="sub">Partage ton écran de trading une fois. Ensuite, un clic sur SCANNER et l'IA lit ton graphique en direct : direction, timer, timeframe, ordre en attente et dessins.</div>
-
-  <div class="card warn">
-    ⚠️ Outil d'aide à la lecture, pas une machine à prédire. Personne ne connaît la prochaine bougie. Il y a aussi un délai de quelques secondes entre le scan et ton clic : sur 30 s ou 1 min, le signal peut déjà être périmé. La majorité des traders d'options binaires perdent de l'argent. Teste sur la démo et ne risque que 1 à 2 % du capital par trade.
+  <h1>Test sur historique</h1>
+  <div class="sub">Rejoue les signaux du scan (EMA, RSI, MACD, Bollinger) sur les dernières bougies 1 min et mesure ce qui se serait passé.</div>
+  <div class="ctl">
+    <label>Clé Twelve Data<input id="key" type="password" autocomplete="off"></label>
+    <label>Paire<select id="pair"><option>EUR/USD</option><option>GBP/USD</option><option>USD/JPY</option><option>AUD/USD</option><option>USD/CAD</option></select></label>
+    <label>Spread (pips)<input id="spread" type="number" step="0.1" min="0" value="0.8"></label>
+    <button id="go">Lancer le test</button>
   </div>
-
-  <div class="card">
-    <div class="row">
-      <div>
-        <label for="key">Clé API Groq</label>
-        <div style="display:flex;gap:6px"><input id="key" type="password" placeholder="gsk_..." autocomplete="off"><button class="sec" id="forget" style="padding:8px 10px">✕</button></div>
-      </div>
-      <div>
-        <label for="model">Modèle (avec vision)</label>
-        <input id="model" value="qwen/qwen3.8-27b">
-      </div>
-    </div>
-    <div class="status">Clé gardée seulement dans ton navigateur. Ne la mets jamais dans le code sur GitHub. Si « model not found », prends un modèle avec vision sur console.groq.com/docs/vision (ex : meta-llama/llama-4-scout-17b-16e-instruct, souvent plus rapide).</div>
-    <div class="row" style="margin-top:10px">
-      <div>
-        <label for="tf">Timeframe</label>
-        <select id="tf"><option value="auto" selected>Auto (détecté sur l'écran)</option><option>5 secondes</option><option>15 secondes</option><option>30 secondes</option><option>1 minute</option><option>2 minutes</option><option>5 minutes</option><option>15 minutes</option></select>
-      </div>
-      <div>
-        <label for="exp">Durées d'expiration dispo</label>
-        <input id="exp" value="30s, 1m, 2m, 3m, 5m, 15m">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="btns">
-      <button id="share">1. Partager l'écran de trading</button>
-      <button id="float" class="sec">2. Ouvrir le scanner flottant</button>
-    </div>
-    <div class="status" id="status">Pas encore d'écran partagé. Choisis la fenêtre ou l'onglet Pocket Option (pas l'écran entier, pour que le scanner flottant ne cache pas le graphique dans l'image).</div>
-  </div>
-
-  <div id="panelHome">
-    <div class="panel" id="panel">
-      <div class="panelbox">
-        <button class="big" id="scan" disabled>⚡ SCANNER</button>
-        <div class="status" id="hint"></div>
-        <div class="autorow">
-          <label style="margin:0;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="auto"> Auto-scan toutes les</label>
-          <select id="autoSec"><option value="20">20 s</option><option value="30" selected>30 s</option><option value="60">60 s</option></select>
-        </div>
-        <div class="autorow"><label style="margin:0;display:flex;gap:6px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="watch" style="margin-top:3px"> <span>👁 Vue continue : surveille l'écran sur ton PC et lance l'analyse quand le graphique change (pas plus souvent que le délai ci-dessus)</span></label></div>
-        <div class="autorow"><label style="margin:0;display:flex;gap:6px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="multi" checked style="margin-top:3px"> <span>Envoyer aussi les images d'il y a ~10 s et ~20 s (l'IA voit le mouvement)</span></label></div>
-        <div id="result"><div class="small" style="text-align:center;color:var(--mut)">Prêt. Partage l'écran puis scanne. Tu peux aussi coller une capture avec Ctrl+V.</div></div>
-      </div>
-    </div>
-  </div>
+  <div class="msg" id="msg">Le test utilise 1 crédit Twelve Data.</div>
+  <div id="out"></div>
+  <p class="note">Les résultats viennent des prix Twelve Data, pas de ton broker. Les signaux se chevauchent d’une minute à l’autre : les chiffres sont indicatifs, pas des trades indépendants. Passé n’est pas futur.</p>
 </div>
-<video id="vid" muted playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></video>
-
 <script>
-const DEFAULT_MODEL = "qwen/qwen3.8-27b";
-const $ = id => document.getElementById(id);
-const keyEl = $("key"), modelEl = $("model"), video = $("vid");
-let stream = null, pipWin = null, busy = false, autoTimer = null;
-
-try { keyEl.value = localStorage.getItem("ts_key") || ""; modelEl.value = localStorage.getItem("ts_model") || DEFAULT_MODEL; } catch(e){}
-keyEl.addEventListener("input", () => { try { localStorage.setItem("ts_key", keyEl.value.trim()); } catch(e){} refresh(); });
-modelEl.addEventListener("input", () => { try { localStorage.setItem("ts_model", modelEl.value.trim()); } catch(e){} });
-$("forget").onclick = () => { keyEl.value = ""; try { localStorage.removeItem("ts_key"); } catch(e){} refresh(); };
-
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const setStatus = t => { $("status").textContent = t; };
-function refresh(){
-  const noKey = !keyEl.value.trim(), noShare = !stream;
-  $("scan").disabled = busy || noKey || noShare;
-  $("hint").textContent = busy ? "" : noShare ? "⚠️ Écran pas partagé : clique sur le bouton 1 de la page principale." : noKey ? "⚠️ Clé Groq manquante : colle-la sur la page principale." : "Prêt ✅ Raccourci : touche Espace.";
+const HORIZONS=[1,3,5,15];
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const $=id=>document.getElementById(id);
+const ema=(a,p)=>{const k=2/(p+1),r=[a[0]];for(let i=1;i<a.length;i++)r.push(a[i]*k+r[i-1]*(1-k));return r};
+function rsi(c,p=14){
+  let g=0,l=0;
+  for(let i=1;i<=p;i++){const d=c[i]-c[i-1];d>=0?g+=d:l-=d}
+  g/=p;l/=p;
+  for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p}
+  return l===0?100:100-100/(1+g/l);
 }
-
-/* ---------- Partage d'écran ---------- */
-$("share").onclick = async () => {
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){ setStatus("Ton navigateur ne supporte pas le partage d'écran. Utilise Chrome ou Edge sur PC."); return; }
+function score(c){
+  const last=c[c.length-1],e9=ema(c,9),e21=ema(c,21);
+  const m12=ema(c,12),m26=ema(c,26),macd=m12.map((v,i)=>v-m26[i]),sg=ema(macd,9);
+  const h=macd.map((v,i)=>v-sg[i]),h0=h[h.length-1],h1=h[h.length-2];
+  const w=c.slice(-20),mean=w.reduce((a,b)=>a+b,0)/20,sd=Math.sqrt(w.reduce((a,b)=>a+(b-mean)**2,0)/20);
+  const r=rsi(c);let s=0;
+  s+=e9[e9.length-1]>e21[e21.length-1]?1:-1;
+  s+=r<30?1:r>70?-1:0;
+  s+=(h0>0&&h0>h1)?1:(h0<0&&h0<h1)?-1:0;
+  s+=last<mean-2*sd?1:last>mean+2*sd?-1:0;
+  return s;
+}
+$("key").value=store.get("tdkey")||"";
+$("go").onclick=async()=>{
+  const key=$("key").value.trim(),pair=$("pair").value,spread=+$("spread").value||0;
+  const msg=$("msg");msg.className="msg";
+  if(!key){msg.className="msg err";msg.textContent="Colle ta clé API Twelve Data.";return;}
+  store.set("tdkey",key);
+  $("go").disabled=true;$("out").innerHTML="";msg.textContent="Téléchargement des bougies…";
   try{
-    stopShare();
-    stream = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:5}, audio:false});
-    video.srcObject = stream; await video.play().catch(()=>{});
-    stream.getVideoTracks()[0].addEventListener("ended", stopShare);
-    startTicker();
-    setStatus("Écran partagé ✅ Surveillance locale active. Clique sur SCANNER ou active la Vue continue.");
-  }catch(e){ stream = null; setStatus("Partage annulé ou refusé."); }
-  refresh();
-};
-function stopShare(){
-  if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
-  video.srcObject = null; stopAuto(); $("auto").checked = false;
-  stopTicker(); $("watch").checked = false;
-  setStatus("Partage arrêté."); refresh();
-}
-
-async function grab(max = 1600, q = 0.85){
-  if(!stream) throw new Error("Partage d'écran non actif. Clique sur « Partager l'écran de trading ».");
-  const track = stream.getVideoTracks()[0];
-  let src, w, h;
-  if(window.ImageCapture){
-    const bmp = await new ImageCapture(track).grabFrame(); src = bmp; w = bmp.width; h = bmp.height;
-  } else { src = video; w = video.videoWidth; h = video.videoHeight; }
-  if(!w || !h) throw new Error("Image vide. Réessaie dans une seconde.");
-  const s = Math.min(1, max / Math.max(w, h));
-  const c = document.createElement("canvas");
-  c.width = Math.round(w * s); c.height = Math.round(h * s);
-  c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
-  return c.toDataURL("image/jpeg", q).split(",")[1];
-}
-
-/* ---------- Analyse ---------- */
-function buildPrompt(n){
-  const tf = $("tf").value === "auto" ? "AUTO: déduis-le de l'image (Pocket Option affiche la durée des bougies; sinon estime-le via l'axe du temps)" : $("tf").value;
-  return `Tu es un analyste technique rapide. Voici la capture d'écran live d'une plateforme de trading Pocket Option (graphique en bougies ou en ligne).
-Contexte: timeframe = ${tf}; durées d'expiration disponibles = ${$("exp").value}.
-${n > 1 ? "Tu reçois " + n + " captures du même écran, dans l'ordre chronologique: la dernière est l'instant actuel, les autres datent d'environ 10 s et 20 s avant. Sers-t'en pour juger la vitesse, l'élan et les rejets récents, mais base la décision sur l'état actuel.\n" : ""}Analyse seulement ce qui est visible: tendance, structure (sommets/creux), supports/résistances, mèches de rejet, momentum, indicateurs affichés.
-Règles strictes:
-- Sois bref: l'utilisateur doit agir en quelques secondes.
-- Si le graphique est illisible, plat, bruité, ou sans setup clair, la décision est "ATTENDRE". Ne force jamais un trade.
-- Ne prétends pas connaître l'avenir. Donne le scénario le plus probable et son invalidation.
-- Les prix lus sont approximatifs.
-- Le timer doit être cohérent avec le timeframe (1 à 3 bougies) et choisi parmi les durées disponibles.
-- "ordre_en_attente": propose un niveau précis seulement si attendre ce niveau vaut mieux qu'entrer maintenant, sinon "Non".
-- "dessins": 1 à 3 outils courants (ligne horizontale, ligne de tendance, canal, Fibonacci, zone rectangle...) avec où les placer.
-Réponds UNIQUEMENT par un objet JSON valide en français, exactement de cette forme:
-{"decision":"ACHAT|VENTE|ATTENDRE","timer":"...","timeframe":"timeframe détecté et conseillé","ordre_en_attente":"...","dessins":["outil : placement"],"raison":"max 2 phrases","invalidation":"...","qualite":"faible|moyenne|bonne"}
-ACHAT = CALL (le prix monte), VENTE = PUT (le prix baisse).`;
-}
-
-function render(d){
-  const dec = String(d.decision || "").toUpperCase();
-  const cls = dec.startsWith("ACHAT") ? "up" : dec.startsWith("VENTE") ? "down" : "wait";
-  const label = cls === "up" ? "ACHAT (CALL) ▲" : cls === "down" ? "VENTE (PUT) ▼" : "ATTENDRE ⏸";
-  const tags = (Array.isArray(d.dessins) ? d.dessins : []).map(x => `<span class="tag">${esc(x)}</span>`).join("");
-  $("result").innerHTML = `
-    <div class="dec ${cls}">${label}</div>
-    <div class="g2">
-      <div><div class="k">⏱ Timer</div><div class="v">${esc(d.timer || "—")}</div></div>
-      <div><div class="k">🕒 Timeframe</div><div class="v">${esc(d.timeframe || "—")}</div></div>
-      <div><div class="k">📌 Ordre en attente</div><div class="v">${esc(d.ordre_en_attente || "Non")}</div></div>
-      <div><div class="k">Qualité du setup</div><div class="v">${esc(d.qualite || "—")}</div></div>
-    </div>
-    <div style="margin-top:8px"><div class="k">✏️ Dessins</div>${tags || "<div class='v'>—</div>"}</div>
-    <div class="small">${esc(d.raison)}</div>
-    <div class="small"><b>Invalidation :</b> ${esc(d.invalidation)}</div>
-    <div class="time">Scan de ${new Date().toLocaleTimeString("fr-FR")} · pas un conseil financier</div>`;
-}
-const showErr = m => { $("result").innerHTML = `<div class="small" style="color:#ff9aa5;border:1px solid #5a1f27;border-radius:10px;padding:10px;background:#1a0d10"><b>Erreur :</b> ${esc(m)}</div>`; };
-
-function setBusy(b){
-  busy = b; const btn = $("scan");
-  btn.innerHTML = b ? '<span class="spin"></span>Analyse...' : "⚡ SCANNER";
-  refresh();
-}
-
-async function analyze(frames){
-  if(busy) return;
-  if(!keyEl.value.trim()){ showErr("Colle d'abord ta clé API Groq."); return; }
-  setBusy(true);
-  try{
-    const model = (modelEl.value || "").trim() || DEFAULT_MODEL;
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method:"POST",
-      headers:{"content-type":"application/json","authorization":"Bearer " + keyEl.value.trim()},
-      body: JSON.stringify({
-        model, temperature:0.3, max_tokens:1500,
-        response_format:{type:"json_object"},
-        messages:[{role:"user",content:[
-          {type:"text",text:buildPrompt(frames.length)},
-          ...frames.map(f => ({type:"image_url",image_url:{url:"data:image/jpeg;base64," + f}}))
-        ]}]
-      })
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data?.error?.message || ("Erreur HTTP " + res.status));
-    let txt = (data?.choices?.[0]?.message?.content || "").replace(/<think>[\s\S]*?<\/think>/g, "");
-    const a = txt.indexOf("{"), z = txt.lastIndexOf("}");
-    if(a < 0 || z < 0) throw new Error("Réponse inattendue de l'IA. Réessaie.");
-    render(JSON.parse(txt.slice(a, z + 1)));
-  }catch(e){ showErr(e.message); }
-  finally{ setBusy(false); }
-}
-
-/* ---------- Vue continue : surveillance locale + tampon des dernières images ---------- */
-const buf = [];                    // images gardées sur ton PC seulement
-let lastSig = null, lastStore = 0, tickWorker = null, ticking = false, lastAnalysis = 0;
-const CHANGE_THRESHOLD = 2.5;      // sensibilité: plus bas = réagit plus souvent
-
-async function tickFrame(){
-  if(!stream) return null;
-  try{
-    const track = stream.getVideoTracks()[0];
-    let src, w, h;
-    if(window.ImageCapture){ const bmp = await new ImageCapture(track).grabFrame(); src = bmp; w = bmp.width; h = bmp.height; }
-    else { src = video; w = video.videoWidth; h = video.videoHeight; }
-    if(!w || !h) return null;
-    const s = Math.min(1, 1280 / Math.max(w, h));
-    const c = document.createElement("canvas"); c.width = Math.round(w * s); c.height = Math.round(h * s);
-    c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
-    const t = document.createElement("canvas"); t.width = 24; t.height = 24;
-    const tx = t.getContext("2d"); tx.drawImage(c, 0, 0, 24, 24);
-    const d = tx.getImageData(0, 0, 24, 24).data, sg = [];
-    for(let i = 0; i < d.length; i += 4) sg.push((d[i] + d[i+1] + d[i+2]) / 3);
-    let diff = 0;
-    if(lastSig){ for(let i = 0; i < sg.length; i++) diff += Math.abs(sg[i] - lastSig[i]); diff /= sg.length; }
-    lastSig = sg;
-    const now = Date.now();
-    if(now - lastStore >= 8000){
-      buf.push({t: now, b64: c.toDataURL("image/jpeg", 0.7).split(",")[1]});
-      lastStore = now; while(buf.length > 5) buf.shift();
+    const res=await fetch("https://api.twelvedata.com/time_series?interval=1min&outputsize=5000&timezone=UTC&symbol="+encodeURIComponent(pair)+"&apikey="+encodeURIComponent(key));
+    const d=await res.json();
+    if(!d.values) throw new Error(d.message||"Pas de données reçues");
+    const c=d.values.map(v=>+v.close).reverse(),n=c.length;
+    if(n<300) throw new Error("Pas assez de bougies ("+n+").");
+    msg.textContent="Calcul sur "+n+" bougies…";
+    await new Promise(r=>setTimeout(r,30));
+    const pip=pair.includes("JPY")?0.01:0.0001,maxH=Math.max(...HORIZONS);
+    const sig=[];
+    for(let i=119;i<n-maxH;i++){
+      const s=score(c.slice(i-119,i+1));
+      if(Math.abs(s)>=2) sig.push({i,dir:s>0?1:-1,strong:Math.abs(s)>=3});
     }
-    return diff;
-  }catch(e){ return null; }
-}
-async function onTick(){
-  if(ticking) return; ticking = true;
-  try{
-    const diff = await tickFrame();
-    const gap = Number($("autoSec").value) * 1000;
-    if($("watch").checked && diff != null && diff > CHANGE_THRESHOLD && !busy && !scanning && Date.now() - lastAnalysis >= gap) scanNow();
-  } finally { ticking = false; }
-}
-function startTicker(){
-  stopTicker();
-  try{
-    const blob = new Blob(["setInterval(()=>postMessage(1),2000)"], {type:"text/javascript"});
-    tickWorker = new Worker(URL.createObjectURL(blob));   // le worker n'est pas ralenti quand la page est en arrière-plan
-    tickWorker.onmessage = onTick;
-  }catch(e){ tickWorker = null; }
-}
-function stopTicker(){ if(tickWorker){ tickWorker.terminate(); tickWorker = null; } buf.length = 0; lastSig = null; }
-
-async function collectFrames(){
-  const cur = await grab();
-  if(!$("multi").checked) return [cur];
-  const now = Date.now(), pick = [];
-  for(const target of [20000, 10000]){
-    let best = null, bd = 1e12;
-    for(const f of buf){ const dd = Math.abs((now - f.t) - target); if(dd < bd){ bd = dd; best = f; } }
-    if(best && bd < 6000 && !pick.includes(best)) pick.push(best);
-  }
-  return [...pick.map(f => f.b64), cur];                  // ordre chronologique, la dernière = maintenant
-}
-
-let scanning = false;
-async function scanNow(){
-  if(busy || scanning) return;
-  scanning = true; lastAnalysis = Date.now();
-  try{ await analyze(await collectFrames()); }catch(e){ showErr(e.message); }
-  finally{ scanning = false; }
-}
-$("watch").onchange = () => { if($("watch").checked && !stream){ $("watch").checked = false; showErr("Partage d'abord l'écran."); } };
-/* Clic et clavier gérés par délégation, dans la page ET dans la fenêtre flottante */
-function bindPanelEvents(doc){
-  doc.addEventListener("click", e => {
-    const b = e.target && e.target.closest ? e.target.closest("#scan") : null;
-    if(b && !b.disabled) scanNow();
-  });
-  doc.addEventListener("keydown", e => {
-    const tag = (e.target && e.target.tagName) || "";
-    if(e.code === "Space" && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(tag)){ e.preventDefault(); scanNow(); }
-  });
-}
-bindPanelEvents(document);
-
-/* ---------- Auto-scan ---------- */
-function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer = null; } }
-function startAuto(){ stopAuto(); autoTimer = setInterval(scanNow, Number($("autoSec").value) * 1000); }
-$("auto").onchange = () => { $("auto").checked ? (stream ? startAuto() : ($("auto").checked = false, showErr("Partage d'abord l'écran."))) : stopAuto(); };
-$("autoSec").onchange = () => { if($("auto").checked) startAuto(); };
-
-/* ---------- Coller une capture (Ctrl+V) ---------- */
-function onPaste(ev){
-  for(const it of (ev.clipboardData || {}).items || []){
-    if(it.type.startsWith("image/")){
-      const f = it.getAsFile(), r = new FileReader();
-      r.onload = () => {
-        const im = new Image();
-        im.onload = () => {
-          const s = Math.min(1, 1600 / Math.max(im.width, im.height));
-          const c = document.createElement("canvas");
-          c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
-          c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-          analyze([c.toDataURL("image/jpeg", 0.85).split(",")[1]]);
-        };
-        im.src = r.result;
-      };
-      r.readAsDataURL(f); break;
+    const groups=[["Tous les signaux",()=>true],["Forts (±3 ou plus)",x=>x.strong],["Modérés (±2)",x=>!x.strong]];
+    let rows="",anyPos=false;
+    for(const [name,f] of groups){
+      const list=sig.filter(f);
+      for(const h of HORIZONS){
+        let w=0,l=0,sum=0;
+        for(const x of list){
+          const move=(c[x.i+h]-c[x.i])*x.dir/pip;
+          sum+=move-spread;
+          if(move>0)w++;else if(move<0)l++;
+        }
+        const cnt=list.length,wr=(w+l)?w/(w+l)*100:0,avg=cnt?sum/cnt:0;
+        if(cnt>=30&&avg>0)anyPos=true;
+        rows+=`<tr><td>${name}</td><td>${h} min</td><td>${cnt}</td><td>${wr.toFixed(1)} %</td><td class="${avg>0?"pos":"neg"}">${avg>0?"+":""}${avg.toFixed(2)}</td></tr>`;
+      }
     }
-  }
-}
-document.addEventListener("paste", onPaste);
-
-/* ---------- Fenêtre flottante (toujours au-dessus) ---------- */
-$("float").onclick = async () => {
-  if(!("documentPictureInPicture" in window)){
-    setStatus("La fenêtre flottante marche sur Chrome ou Edge (PC). Sinon, place cette page à côté de ton graphique.");
-    return;
-  }
-  try{
-    if(pipWin){ pipWin.close(); return; }
-    pipWin = await documentPictureInPicture.requestWindow({width:380, height:560});
-    document.querySelectorAll("style").forEach(s => pipWin.document.head.appendChild(s.cloneNode(true)));
-    pipWin.document.body.style.margin = "0";
-    pipWin.document.body.appendChild($("panel"));
-    pipWin.document.addEventListener("paste", onPaste);
-    bindPanelEvents(pipWin.document);
-    pipWin.focus(); refresh();
-    pipWin.addEventListener("pagehide", () => { $("panelHome").appendChild($("panel")); pipWin = null; });
-    setStatus("Scanner flottant ouvert. Il reste au-dessus de ton écran de trading.");
-  }catch(e){ setStatus("Impossible d'ouvrir la fenêtre flottante : " + e.message); }
+    const up=c.slice(1).reduce((a,v,i)=>a+(v>c[i]?1:0),0)/(n-1)*100;
+    const first=d.values[d.values.length-1].datetime,last=d.values[0].datetime;
+    $("out").innerHTML=`<div class="box"><table><thead><tr><th>Signaux</th><th>Tenue</th><th>Nombre</th><th>Réussite</th><th>Pips nets moy.</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="verdict">${anyPos?"Certaines lignes sont positives après spread, mais l’échantillon est court (quelques jours). À confirmer sur d’autres périodes avant d’y mettre de l’argent.":"Après le spread de "+spread+" pip(s), aucune ligne n’est positive : ce signal ne montre pas d’avantage sur cette période."}</div>
+    <div class="msg">${pair} · ${n} bougies du ${first} au ${last} (UTC) · ${sig.length} signaux · bougies haussières au total : ${up.toFixed(1)} %. Réussite = signaux gagnants sur gagnants + perdants (égalités exclues). Pips nets = mouvement dans le sens du signal moins le spread.</div>`;
+    msg.textContent="";
+  }catch(e){msg.className="msg err";msg.textContent="Test impossible : "+e.message;}
+  $("go").disabled=false;
 };
-
-refresh();
 </script>
 </body>
 </html>
