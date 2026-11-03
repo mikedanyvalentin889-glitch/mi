@@ -84,6 +84,7 @@ pre.ai{white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 inherit;font-fam
             <div><label>Durée d'une bougie sur ton graphique<select id="tf"><option value="1">M1 — 1 minute</option><option value="2">M2 — 2 minutes</option><option value="5" selected>M5 — 5 minutes</option><option value="15">M15 — 15 minutes</option><option value="30">M30 — 30 minutes</option><option value="60">H1 — 1 heure</option></select></label></div>
             <div><label>Temps d'expiration que tu comptes mettre<select id="exp"><option value="0">Auto (l'outil conseille)</option><option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select></label></div>
             <div><label>Paire / actif (pour le journal)<input type="text" id="pair" placeholder="ex: EUR/USD"></label></div>
+            <div><label>Prix où je veux trader (optionnel)<input type="text" id="lvl" placeholder="ex: 1.11230" inputmode="decimal"></label></div>
           </div>
           <label class="chk"><input type="checkbox" id="ignoreLast" checked> Ignorer la dernière bougie (elle est encore en formation)</label>
           <label class="chk"><input type="checkbox" id="invert"> Mes couleurs sont inversées (rouge = hausse, vert = baisse)</label>
@@ -107,6 +108,7 @@ pre.ai{white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 inherit;font-fam
             <div class="kv"><span>Force du signal</span><b id="strength"></b></div>
             <div class="kv"><span>Marché (ADX)</span><b id="regime"></b></div>
             <div class="kv"><span>Accord des stratégies</span><b id="agree"></b></div>
+            <div class="box hidden" id="lvlBox"></div>
             <div class="box" id="pendBox"></div>
             <div class="box" id="entryBox"></div>
             <div class="box" id="expiryBox"></div>
@@ -245,18 +247,27 @@ function candlePatterns(o,h,l,c,A){
 function extractCandles(data,W,H,invert){
   const cols=new Array(W);
   for(let x=0;x<W;x++){
-    let bc=0,rc=0,bt=1e9,bb=-1,rt=1e9,rb=-1;
+    // plus longue série verticale continue (trous de 3 px tolérés) pour chaque couleur :
+    // ignore ainsi drapeaux, icônes et textes colorés isolés du reste du graphique
+    let bs=-1,be=-1,bl=0,bt=0,bb=0,rs=-1,re=-1,rl=0,rt=0,rb=0;
     for(let y=0;y<H;y++){
       const i=(y*W+x)*4;
       if(data[i+3]<200)continue;
       const r=data[i],g=data[i+1],b=data[i+2];
       const isG=g>r+25&&g>b+5&&g>90,isR=r>g+45&&r>b+30&&r>110;
       const isBull=invert?isR:isG,isBear=invert?isG:isR;
-      if(isBull){bc++;if(y<bt)bt=y;if(y>bb)bb=y;}
-      else if(isBear){rc++;if(y<rt)rt=y;if(y>rb)rb=y;}
+      if(isBull){
+        if(bs>=0&&y-be<=3)be=y;
+        else{if(bs>=0&&be-bs+1>bl){bl=be-bs+1;bt=bs;bb=be;}bs=y;be=y;}
+      }else if(isBear){
+        if(rs>=0&&y-re<=3)re=y;
+        else{if(rs>=0&&re-rs+1>rl){rl=re-rs+1;rt=rs;rb=re;}rs=y;re=y;}
+      }
     }
-    if(bc+rc>=2){
-      cols[x]=bc>=rc?{bull:true,top:bt,bot:bb}:{bull:false,top:rt,bot:rb};
+    if(bs>=0&&be-bs+1>bl){bl=be-bs+1;bt=bs;bb=be;}
+    if(rs>=0&&re-rs+1>rl){rl=re-rs+1;rt=rs;rb=re;}
+    if(Math.max(bl,rl)>=2){
+      cols[x]=bl>=rl?{bull:true,top:bt,bot:bb}:{bull:false,top:rt,bot:rb};
     }else cols[x]=null;
   }
   const groups=[];let cur=null;
@@ -516,8 +527,57 @@ function analyze(all,opt){
   if(signal!=='WAIT'){pending.entryP=pullbackFlag?entryLevel:now;pending.invP=inv;pending.targetP=target;}
   else{pending.buyP=res.p+0.2*A;pending.sellP=sup.p-0.2*A;}
   pending.expMin=pMin;pending.expBars=pBars;
+
+  // Évaluation d'un prix choisi par l'utilisateur : acheter ou vendre à ce niveau ?
+  let plan=null;
+  if(opt.levelP!=null&&isFinite(opt.levelP)){
+    const Lp=opt.levelP,d=(Lp-now)/A;
+    const near=cl.filter(q=>Math.abs(q.p-Lp)<=0.5*A).sort((a,b)=>b.n-a.n)[0]||null;
+    const ema=Math.abs(Lp-e21[i])<=0.4*A?'EMA 21':Math.abs(Lp-e9[i])<=0.4*A?'EMA 9':(e50&&Math.abs(Lp-e50[i])<=0.4*A?'EMA 50':null);
+    const bullB=score>0.15,bearB=score<-0.15;
+    let dir=null,kind='none',conf='—';const T=[];
+    if(Math.abs(d)<0.3){
+      kind='market';dir=signal==='WAIT'?null:signal;conf=dir?strength:'—';
+      T.push('Ce prix est le prix actuel du marché (écart de '+f1(Math.abs(d))+' ATR).');
+      T.push(dir?'Le scanner donne '+(dir==='CALL'?'ACHAT':'VENTE')+' (force '+strength.toLowerCase()+').':'Le scanner dit ATTENDRE : '+why.join(' '));
+    }else if(d>0){
+      if(near||ema){
+        kind='rejet';dir='PUT';
+        let pts=(near?(near.n>=3?2:near.n>=2?1.5:1):0)+(ema?1:0)+(bearB?1:0)-(bullB?1:0)+(rsi!==null&&rsi>60?0.5:0);
+        conf=pts>=2.5?'Moyenne':pts>=1.5?'Faible':'Très faible';
+        T.push('Ce prix est '+f1(d)+' ATR AU-DESSUS du prix actuel : le prix devra monter jusque-là.');
+        T.push('À ce niveau, on trouve '+[near?'une résistance touchée '+near.n+' fois':'',ema?'l\''+ema+' qui peut freiner le prix':''].filter(Boolean).join(' et ')+' : vente sur rejet.');
+        if(bullB)T.push('Attention : la tendance est plutôt haussière, le niveau peut céder.');
+        if(conf==='Très faible')T.push('Signal trop faible : évite ce trade.');
+      }else if(Lp>res.p+0.2*A){
+        kind='cassure';
+        if(bullB){dir='CALL';conf='Faible';T.push('Niveau '+f1(d)+' ATR au-dessus du prix, au-delà de la résistance : achat sur cassure, dans le sens de la tendance haussière.');}
+        else T.push('Niveau au-delà de la résistance mais la tendance n\'est pas haussière : une cassure est peu probable, ne place pas d\'ordre.');
+      }else T.push('Aucune résistance ni moyenne mobile à ce prix : rien ne justifie un ordre ici.');
+    }else{
+      if(near||ema){
+        kind='rebond';dir='CALL';
+        let pts=(near?(near.n>=3?2:near.n>=2?1.5:1):0)+(ema?1:0)+(bullB?1:0)-(bearB?1:0)+(rsi!==null&&rsi<40?0.5:0);
+        conf=pts>=2.5?'Moyenne':pts>=1.5?'Faible':'Très faible';
+        T.push('Ce prix est '+f1(Math.abs(d))+' ATR EN DESSOUS du prix actuel : le prix devra redescendre jusque-là.');
+        T.push('À ce niveau, on trouve '+[near?'un support touché '+near.n+' fois':'',ema?'l\''+ema+' qui peut soutenir le prix':''].filter(Boolean).join(' et ')+' : achat sur rebond.');
+        if(bearB)T.push('Attention : la tendance est plutôt baissière, le niveau peut céder.');
+        if(conf==='Très faible')T.push('Signal trop faible : évite ce trade.');
+      }else if(Lp<sup.p-0.2*A){
+        kind='cassure';
+        if(bearB){dir='PUT';conf='Faible';T.push('Niveau '+f1(Math.abs(d))+' ATR sous le prix, au-delà du support : vente sur cassure, dans le sens de la tendance baissière.');}
+        else T.push('Niveau sous le support mais la tendance n\'est pas baissière : une cassure est peu probable, ne place pas d\'ordre.');
+      }else T.push('Aucun support ni moyenne mobile à ce prix : rien ne justifie un ordre ici.');
+    }
+    const nb=kind==='cassure'?pBars:Math.min(Math.max(pBars,1),2);
+    plan={level:Lp,dist:d,kind,dir,conf,text:T,expBars:nb,expMin:snap(nb*tf),maxBars:3};
+    if(dir&&kind!=='market'){
+      plan.invP=dir==='PUT'?Lp+0.6*A:Lp-0.6*A;
+      plan.targetP=dir==='PUT'?((Lp-sup.p>=0.8*A)?sup.p:Lp-1.5*A):((res.p-Lp>=0.8*A)?res.p:Lp+1.5*A);
+    }
+  }
   const bigger=allowed.find(m=>m>=tf*3)||60;
-  return {pending,signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
+  return {pending,plan,signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
     levels:{sup:sup.p,res:res.p,entry:entryLevel,target,inv,now},
     entryAdvice,waitFor,expiry:{candles:candlesN,min:expMin,note:expNote,userNote,rangeTxt:tf+'–'+(tf*3)+' min',higher:bigger},
     series:{e9,e21,cs},ignoredLast:!!opt.ignoreLast};
@@ -584,7 +644,7 @@ function fmtP(pp){
 $('calBtn').addEventListener('click',()=>{
   calPts=[];cal=null;calMode=1;cv.style.cursor='crosshair';
   $('calInfo').textContent='Clique sur une graduation de l\'axe des prix (point 1 sur 2).';
-  if(last)draw(last);if(last&&last.res)render(last.res);
+  if(last&&last.res)run();else if(last)draw(last);
 });
 cv.addEventListener('click',ev=>{
   if(!calMode)return;
@@ -608,8 +668,48 @@ cv.addEventListener('click',ev=>{
       $('calInfo').textContent='Prix calibrés ✓ : les lignes et le pending trade affichent maintenant les prix.';
     }
   }
-  if(last)draw(last);if(last&&last.res)render(last.res);
+  if(last&&last.res)run();else if(last)draw(last);
 });
+// Prix voulu par l'utilisateur (converti de prix vers pixels grâce à la calibration)
+let lvErr='';
+$('lvl').addEventListener('change',()=>{if(last&&last.res)run();});
+function levelPixel(){
+  const s=($('lvl').value||'').trim().replace(',','.');
+  if(!s)return {p:null};
+  const v=parseFloat(s);
+  if(!isFinite(v))return {p:null,err:'Le prix voulu est invalide : tape un nombre, par exemple 1.11230.'};
+  if(!cal)return {p:null,err:'Pour analyser ce prix, calibre d\'abord l\'échelle : bouton « Calibrer les prix » sous l\'image, puis clique sur 2 graduations de l\'axe.'};
+  const y=cal.y1+(v-cal.p1)*(cal.y2-cal.y1)/(cal.p2-cal.p1);
+  if(y<0||y>H)return {p:null,err:'Ce prix est en dehors de la zone visible de l\'image.'};
+  return {p:H-y};
+}
+function renderLevel(r){
+  const b=$('lvlBox'),p=r.plan,s=($('lvl').value||'').trim().replace(',','.');
+  if(!p){
+    b.classList.toggle('hidden',!lvErr);
+    b.innerHTML=lvErr?'<b>🎯 Prix voulu</b><br><span class="neutral">'+esc(lvErr)+'</span>':'';
+    return;
+  }
+  b.classList.remove('hidden');
+  const dirTxt=p.dir==='CALL'?'<span class="good">ACHAT (CALL ▲)</span>':p.dir==='PUT'?'<span class="bad">VENTE (PUT ▼)</span>':'<span class="neutral">PAS DE TRADE</span>';
+  const kv=(a,v)=>'<div class="kv"><span>'+a+'</span><b>'+v+'</b></div>';
+  let h='<b>🎯 Si tu veux trader à '+esc(s)+' : '+dirTxt+'</b>';
+  h+='<div style="margin:6px 0">'+p.text.map(t=>esc(t)).join('<br>')+'</div>';
+  if(p.dir){
+    h+=kv('Confiance',esc(p.conf));
+    if(p.kind==='market'){
+      h+='<div class="small">Utilise le bloc « Trade en attente » ci-dessous pour la barre d\'entrée et la durée.</div>';
+    }else{
+      h+=kv('Pending trade : direction',dirTxt);
+      h+=kv('Prix d\'ouverture',esc(s));
+      h+=kv('Annuler si une bougie clôture au-delà de',fmtP(p.invP));
+      h+=kv('Objectif (zone de sortie visée)',fmtP(p.targetP));
+      h+=kv('Expiration à régler','<span class="blue">'+p.expMin+' min</span> ≈ '+p.expBars+' barre'+(p.expBars>1?'s':'')+' de '+$('tf').value+' min');
+      h+='<div class="small">L\'ordre est valable '+p.maxBars+' barres ('+p.maxBars*Number($('tf').value)+' min) : si le prix n\'a pas touché ton niveau, annule-le. '+(p.kind==='cassure'?'Un pending trade s\'ouvre au simple contact : une fausse cassure peut te piéger, mieux vaut attendre la clôture d\'une bougie au-delà du niveau.':'Mieux : attends une bougie de rejet (' +(p.dir==='CALL'?'verte':'rouge')+') sur ton niveau avant d\'entrer.')+'</div>';
+    }
+  }
+  b.innerHTML=h;
+}
 function priceOrRel(pp,p){
   const s=fmtP(pp),rel=Math.abs(pp-p.now)/p.atr;
   if(s)return '<b>'+s+'</b>';
@@ -669,7 +769,8 @@ function run(){
     if($('boxes').checked){last={all,res:null};draw(last);}
     return;
   }
-  const res=analyze(all,{ignoreLast,tfMin:Number($('tf').value),userExp:Number($('exp').value)});
+  const lv=levelPixel();lvErr=lv.err||'';
+  const res=analyze(all,{ignoreLast,tfMin:Number($('tf').value),userExp:Number($('exp').value),levelP:lv.p});
   last={all,res};render(res);draw(last);
   if(medW<3)$('err').textContent='Les bougies sont très fines ('+medW+' px) : la lecture du corps peut être imprécise. Zoome sur le graphique avant de capturer.';
 }
@@ -680,7 +781,7 @@ function render(r){
   const word=r.signal==='CALL'?'ACHAT (CALL ▲)':r.signal==='PUT'?'VENTE (PUT ▼)':'ATTENDRE';
   setSignal(cls,word,r.signal==='WAIT'?r.why.join(' '):'Force '+r.strength.toLowerCase()+' • '+r.agreeing+' stratégies sur '+r.total+' vont dans ce sens');
   $('resBody').classList.remove('hidden');$('stratPanel').classList.remove('hidden');
-  renderPend(r);
+  renderPend(r);renderLevel(r);
   const pct=Math.round(Math.abs(r.score)*100);
   $('scoreTxt').textContent=(r.score>=0?'+':'')+Math.round(r.score*100)+' / 100';
   $('scoreBar').style.width=Math.min(100,pct*1.6)+'%';
@@ -728,6 +829,7 @@ function draw(st){
     ctx.fillStyle=col;ctx.fillText(label,11,ty+1);
   };
   const L=r.levels;
+  if(r.plan)lineAt(r.plan.level,'Ton prix • '+(r.plan.dir==='CALL'?'ACHAT':r.plan.dir==='PUT'?'VENTE':'pas de trade'),'#c77dff',false);
   const wt=r.signal==='WAIT';
   lineAt(L.sup,wt?'Support : clôture dessous = VENTE':'Support','#25d695',true);lineAt(L.res,wt?'Résistance : clôture dessus = ACHAT':'Résistance','#ff647c',true);
   if(r.signal!=='WAIT'){
