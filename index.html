@@ -1,119 +1,161 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Comparateur de stratégies</title>
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner de graphique</title>
 <style>
-:root{--bg:#eef1f4;--panel:#fff;--ink:#18263a;--mute:#66758a;--line:#d9dfe6;--buy:#0c8f7d;--sell:#c93d36;--wait:#8a6d1c}
-@media (prefers-color-scheme:dark){:root{--bg:#121a26;--panel:#1a2536;--ink:#e7edf5;--mute:#8d9cb2;--line:#2b3a50;--buy:#3fd1b9;--sell:#ff7a72;--wait:#e3c25f}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px 16px 48px}
-.wrap{max-width:900px;margin:0 auto}
-h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
-h2{font-size:18px;margin:26px 0 8px}
-.sub{color:var(--mute);font-size:14px;margin-bottom:18px}
-.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
-label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:4px}
-input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
-input[type=password]{min-width:220px}input[type=number]{width:90px}
-button{font:inherit;background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:9px 16px;cursor:pointer}
-button:disabled{opacity:.5;cursor:wait}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--buy);outline-offset:2px}
-.msg{padding:6px 0;color:var(--mute);font-size:14px}.err{color:var(--sell)}
-.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 14px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
-th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-tr:last-child td{border-bottom:0}th{color:var(--mute);font-weight:500;font-size:13px}
-.pos{color:var(--buy);font-weight:600}.neg{color:var(--sell);font-weight:600}
-.verdict{margin:16px 0;padding:14px 16px;border-left:6px solid var(--wait);background:var(--panel);border-radius:10px}
-.note{color:var(--mute);font-size:13px;margin-top:18px}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Comparateur de stratégies</h1>
-  <div class="sub">Trois stratégies simples testées sur le même historique forex, sur 4 paires à la fois.</div>
-  <div class="ctl">
-    <label>Clé Twelve Data<input id="key" type="password" autocomplete="off"></label>
-    <label>Bougies<select id="tf"><option value="5min">5 minutes</option><option value="15min">15 minutes</option></select></label>
-    <label>Spread (pips)<input id="spread" type="number" step="0.1" min="0" value="0.8"></label>
-    <button id="go">Lancer la comparaison</button>
-  </div>
-  <div class="msg" id="msg">Coûte 4 crédits Twelve Data (EUR/USD, GBP/USD, USD/JPY, AUD/USD).</div>
-  <div id="out"></div>
-  <p class="note">Stratégies : <b>Tendance</b> = l’EMA 9 croise l’EMA 21. <b>Retournement</b> = le RSI 14 franchit 30 ou 70. <b>Cassure</b> = le prix dépasse son plus haut ou plus bas des 20 dernières bougies. L’entrée se fait à la clôture de la bougie du signal. Les prix viennent de Twelve Data, pas de ton broker. Le passé ne garantit pas le futur.</p>
-</div>
+:root{--bg:#0e1a2b;--pn:#16273f;--ln:#26405f;--tx:#e6edf7;--mu:#8fa4c0;--up:#3dd6a9;--dn:#ff7a6b;--am:#f4b942}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:20px 14px 60px}
+h1{font-size:1.7rem;margin:0 0 4px}header p{color:var(--mu);margin:0 0 18px;max-width:60ch}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:14px;margin-bottom:14px}
+.drop{display:block;border:2px dashed var(--ln);border-radius:10px;padding:26px;text-align:center;color:var(--mu);cursor:pointer}
+.drop:hover,.drop.on{border-color:var(--am);color:var(--tx)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--mu)}
+input[type=number],select{background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:8px;font:inherit}
+canvas{width:100%;height:auto;border-radius:8px;display:block;cursor:crosshair;touch-action:none;background:#000}
+.hint{color:var(--mu);font-size:.85rem;margin:8px 0 0}
+button{background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit;margin-top:8px}
+button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.v{border-left:8px solid var(--mu)}.v.u{border-color:var(--up)}.v.d{border-color:var(--dn)}
+.v h2{margin:0;font-size:2rem;letter-spacing:.01em}.v.u h2{color:var(--up)}.v.d h2{color:var(--dn)}.v.w h2{color:var(--am)}
+.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.k div{background:var(--bg);border-radius:8px;padding:10px}.k b{display:block;font-size:.8rem;color:var(--mu);font-weight:500}
+.s{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;padding:10px 0;border-top:1px solid var(--ln)}
+.bar{height:8px;background:var(--bg);border-radius:4px;position:relative;margin-top:8px}
+.bar i{position:absolute;top:0;height:8px;border-radius:4px}.bar:after{content:"";position:absolute;left:50%;top:-2px;width:1px;height:12px;background:var(--mu)}
+details{grid-column:2;color:var(--mu);font-size:.88rem}summary{cursor:pointer;color:var(--am)}
+.err{color:var(--dn)}small{color:var(--mu)}
+@media(max-width:560px){.s{grid-template-columns:1fr}details{grid-column:1}}
+</style></head><body><main>
+<header><h1>Scanner de graphique</h1><p>Téléverse une capture (ou colle-la avec Ctrl+V). Le scanner lit les bougies, applique 12 stratégies et te dit quoi faire, où entrer et combien de temps prendre.</p></header>
+<section class="pn">
+<label class="drop" id="drop">Glisse une image ici, clique pour choisir, ou colle avec Ctrl+V<input type="file" id="file" accept="image/*" hidden></label>
+<div class="row">
+<label class="f">Durée d'UNE bougie sur ton graphique<select id="tf"><option value="5">5 s</option><option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="300">5 min</option><option value="900">15 min</option></select></label>
+<label class="f">Prix tout en haut de la zone (optionnel)<input type="number" id="ph" step="any" placeholder="ex. 1.0852"></label>
+<label class="f">Prix tout en bas de la zone (optionnel)<input type="number" id="pl" step="any" placeholder="ex. 1.0831"></label>
+<label class="f">Ignorer l'axe de droite : <span id="rv">7</span>%<input type="range" id="rm" min="0" max="20" value="7"></label>
+<label class="f"><span><input type="checkbox" id="inv"> Inverser les couleurs (hausse = rouge)</span></label>
+</div></section>
+<section class="pn" id="view" hidden><canvas id="cv"></canvas>
+<p class="hint">Trace un rectangle sur les bougies pour exclure les étiquettes de prix et les outils. Les cadres fins montrent les bougies détectées.</p><button id="rst">Réinitialiser la zone</button></section>
+<section id="out"></section>
+<p><small>Outil éducatif : il lit les pixels d'une capture, pas des données de marché en direct. Aucun signal n'est garanti, et un trade de quelques secondes reste très proche du hasard. Limite ton risque par trade.</small></p>
+</main>
 <script>
-const PAIRS=["EUR/USD","GBP/USD","USD/JPY","AUD/USD"];
-const HC=[1,3,6,12];
-const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-const $=id=>document.getElementById(id);
-const ema=(a,p)=>{const k=2/(p+1),r=[a[0]];for(let i=1;i<a.length;i++)r.push(a[i]*k+r[i-1]*(1-k));return r};
-function rsiSeries(c,p=14){
-  const r=new Array(c.length).fill(50);
-  let g=0,l=0;
-  for(let i=1;i<=p;i++){const d=c[i]-c[i-1];d>=0?g+=d:l-=d}
-  g/=p;l/=p;r[p]=l===0?100:100-100/(1+g/l);
-  for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p;r[i]=l===0?100:100-100/(1+g/l)}
-  return r;
-}
-const STRATS={
-  "Tendance":c=>{const a=ema(c,9),b=ema(c,21),s=new Array(c.length).fill(0);
-    for(let i=22;i<c.length;i++){const d=a[i]-b[i],dp=a[i-1]-b[i-1];if(dp<=0&&d>0)s[i]=1;else if(dp>=0&&d<0)s[i]=-1}return s},
-  "Retournement":c=>{const r=rsiSeries(c),s=new Array(c.length).fill(0);
-    for(let i=16;i<c.length;i++){if(r[i-1]>=30&&r[i]<30)s[i]=1;else if(r[i-1]<=70&&r[i]>70)s[i]=-1}return s},
-  "Cassure":c=>{const st=new Array(c.length).fill(0),s=new Array(c.length).fill(0);
-    for(let i=21;i<c.length;i++){const w=c.slice(i-20,i),hi=Math.max(...w),lo=Math.min(...w);st[i]=c[i]>hi?1:c[i]<lo?-1:0;if(st[i]&&!st[i-1])s[i]=st[i]}return s}
-};
-$("key").value=store.get("tdkey")||"";
-$("go").onclick=async()=>{
-  const key=$("key").value.trim(),tf=$("tf").value,spread=+$("spread").value||0,mins=tf==="5min"?5:15;
-  const msg=$("msg");msg.className="msg";
-  if(!key){msg.className="msg err";msg.textContent="Colle ta clé API Twelve Data.";return;}
-  store.set("tdkey",key);
-  $("go").disabled=true;$("out").innerHTML="";msg.textContent="Téléchargement des bougies…";
-  try{
-    const res=await fetch("https://api.twelvedata.com/time_series?interval="+tf+"&outputsize=5000&timezone=UTC&symbol="+encodeURIComponent(PAIRS.join(","))+"&apikey="+encodeURIComponent(key));
-    const d=await res.json();
-    if(d.status==="error"&&!d.values) throw new Error(d.message||"Erreur API");
-    const data={};const info=[];
-    for(const p of PAIRS){
-      const x=d[p];
-      if(!x||!x.values||x.values.length<300) throw new Error("Données insuffisantes pour "+p+(x&&x.message?" : "+x.message:""));
-      data[p]=x.values.map(v=>+v.close).reverse();
-      info.push(p+" "+x.values.length+" bougies, du "+x.values[x.values.length-1].datetime.slice(0,10)+" au "+x.values[0].datetime.slice(0,10));
-    }
-    msg.textContent="Calcul…";await new Promise(r=>setTimeout(r,30));
-    const rows=[],good=[];
-    for(const [name,fn] of Object.entries(STRATS)){
-      const sigs={};for(const p of PAIRS)sigs[p]=fn(data[p]);
-      for(const h of HC){
-        let n=0,w=0,l=0,sum=0,pp=0;
-        for(const p of PAIRS){
-          const c=data[p],s=sigs[p],pip=p.includes("JPY")?0.01:0.0001;
-          let pn=0,ps=0;
-          for(let i=30;i<c.length-h;i++){
-            if(!s[i])continue;
-            const mv=(c[i+h]-c[i])*s[i]/pip;
-            pn++;ps+=mv-spread;
-            if(mv>0)w++;else if(mv<0)l++;
-          }
-          n+=pn;sum+=ps;if(pn>=20&&ps/pn>0)pp++;
-        }
-        const avg=n?sum/n:0,wr=(w+l)?w/(w+l)*100:0;
-        if(n>=100&&avg>0&&pp>=3)good.push(name+" ("+h*mins+" min)");
-        rows.push(`<tr><td>${name}</td><td>${h*mins} min</td><td>${n}</td><td>${wr.toFixed(1)} %</td><td class="${avg>0?"pos":"neg"}">${avg>0?"+":""}${avg.toFixed(2)}</td><td>${pp}/${PAIRS.length}</td></tr>`);
-      }
-    }
-    $("out").innerHTML=`<div class="box"><table><thead><tr><th>Stratégie</th><th>Tenue</th><th>Signaux</th><th>Réussite</th><th>Pips nets moy.</th><th>Paires positives</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
-    <div class="verdict">${good.length?"Positives après spread sur au moins 3 paires sur 4 : "+good.join(", ")+". C’est un début, pas une preuve : refais le test sur une autre période avant d’y mettre de l’argent.":"Aucune stratégie ne reste positive après spread sur la majorité des paires. Aucune ne montre d’avantage sur cette période."}</div>
-    <div class="msg">${info.join(" · ")}. Réussite = gagnants sur gagnants + perdants (égalités exclues). Pips nets = mouvement dans le sens du signal moins le spread de ${spread} pip(s).</div>`;
-    msg.textContent="";
-  }catch(e){msg.className="msg err";msg.textContent="Test impossible : "+e.message;}
-  $("go").disabled=false;
-};
-</script>
-</body>
-</html>
+const $=s=>document.querySelector(s),cv=$('#cv'),cx=cv.getContext('2d'),base=document.createElement('canvas'),bx=base.getContext('2d',{willReadFrequently:true});
+let crop=null,loaded=false;
+function load(f){if(!f||!f.type.startsWith('image/'))return;const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const s=Math.min(1,1400/im.width);base.width=cv.width=Math.round(im.width*s);base.height=cv.height=Math.round(im.height*s);bx.drawImage(im,0,0,base.width,base.height);loaded=true;crop=null;$('#view').hidden=false;URL.revokeObjectURL(u);run()};im.src=u}
+function cls(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(!mx||d/mx<.4||mx<102)return 0;let h;if(mx==r)h=((g-b)/d+6)%6;else if(mx==g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;return h>=75&&h<=200?1:(h<=22||h>=335)?2:0}
+function extract(){
+ const inv=$('#inv').checked;let x0=0,y0=0,w=Math.round(cv.width*(1-$('#rm').value/100)),h=cv.height;
+ if(crop)({x:x0,y:y0,w,h}=crop);
+ const d=bx.getImageData(x0,y0,w,h).data,cols=[];
+ for(let x=0;x<w;x++){const c=[0,0,0],a=[1e9,1e9,1e9],b=[-1,-1,-1];
+  for(let y=0;y<h;y++){const i=(y*w+x)*4;let k=cls(d[i],d[i+1],d[i+2]);if(!k)continue;if(inv)k=3-k;c[k]++;if(y<a[k])a[k]=y;if(y>b[k])b[k]=y}
+  const k=c[1]>=c[2]?1:2;cols.push(c[k]?{t:k,n:c[k],a:a[k],b:b[k]}:null)}
+ let runs=[],cur=null;
+ cols.forEach((c,x)=>{if(c&&cur&&cur.t==c.t)cur.c.push(c);else{cur=c?{t:c.t,x,c:[c]}:null;if(cur)runs.push(cur)}});
+ runs=runs.filter(r=>r.c.length<=w*.25);
+ const ws=runs.map(r=>r.c.length).filter(l=>l>=2).sort((a,b)=>a-b),mw=ws.length?ws[ws.length>>1]:1,seg=[];
+ runs.forEach(r=>{const L=r.c.length,k=mw>=3&&L>1.7*mw?Math.round(L/mw):1;for(let i=0;i<k;i++){const s=Math.floor(i*L/k),e=Math.floor((i+1)*L/k);seg.push({t:r.t,x:r.x+s,c:r.c.slice(s,e)})}});
+ const C=seg.filter(s=>s.c.length).map(s=>{const ns=s.c.map(c=>c.n).sort((a,b)=>a-b),med=ns[ns.length>>1],bo=s.c.filter(c=>c.n>=.8*med),hi=Math.min(...s.c.map(c=>c.a)),lo=Math.max(...s.c.map(c=>c.b));
+  let bt,bb;if(s.c.length>=3){bt=Math.min(...bo.map(c=>c.a));bb=Math.max(...bo.map(c=>c.b))}else bt=bb=(hi+lo)/2;
+  const up=s.t==1,P=y=>h-y;return{x:x0+s.x,w:s.c.length,o:P(up?bb:bt),c:P(up?bt:bb),h:P(hi),l:P(lo)}}).filter(c=>c.h-c.l>=2);
+ return{C,x0,y0,w,h}}
+/* ---------- indicateurs ---------- */
+const ema=(a,n)=>{const k=2/(n+1),o=[a[0]];for(let i=1;i<a.length;i++)o.push(a[i]*k+o[i-1]*(1-k));return o};
+function rsi(c,n){let g=0,l=0;for(let i=1;i<=n;i++){const d=c[i]-c[i-1];d>0?g+=d:l-=d}g/=n;l/=n;for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n}return l?100-100/(1+g/l):100}
+function adx(h,l,c,n){const tr=[],pd=[],md=[];for(let i=1;i<c.length;i++){tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));const u=h[i]-h[i-1],d=l[i-1]-l[i];pd.push(u>d&&u>0?u:0);md.push(d>u&&d>0?d:0)}
+ const W=a=>{let s=a.slice(0,n).reduce((x,y)=>x+y,0);const o=[s];for(let i=n;i<a.length;i++){s=s-s/n+a[i];o.push(s)}return o};
+ const T=W(tr),P=W(pd),M=W(md),dx=T.map((t,i)=>{const p=100*P[i]/(t||1),m=100*M[i]/(t||1);return{p,m,x:100*Math.abs(p-m)/((p+m)||1)}});
+ let a=dx.slice(0,n).reduce((s,q)=>s+q.x,0)/Math.min(n,dx.length);for(let i=n;i<dx.length;i++)a=(a*(n-1)+dx[i].x)/n;const L=dx[dx.length-1];return{adx:a,p:L.p,m:L.m,atr:T[T.length-1]/n}}
+const swings=(a,hi,k=2)=>{const o=[];for(let i=k;i<a.length-k;i++){let ok=true;for(let j=1;j<=k;j++)if(hi?(a[i]<=a[i-j]||a[i]<=a[i+j]):(a[i]>=a[i-j]||a[i]>=a[i+j])){ok=false;break}if(ok)o.push(i)}return o};
+/* ---------- analyse : 12 stratégies ---------- */
+function analyze(C,tf){
+ const N=C.length,o=C.map(x=>x.o),h=C.map(x=>x.h),l=C.map(x=>x.l),c=C.map(x=>x.c),L=N-1,P=c[L],S=[];
+ const add=(n,tag,v,w,txt,les)=>S.push({n,tag,v:Math.max(-1,Math.min(1,v)),w,txt,les});
+ const sm=N<30,pe=sm?[3,6,12]:[5,10,20],E=pe.map(n=>ema(c,n)),e=E.map(a=>a[L]);
+ const D=adx(h,l,c,Math.min(14,N>>1)),A=D.atr||1,trend=D.adx>=22;
+ let v,t;
+ if(P>e[0]&&e[0]>e[1]&&e[1]>e[2]){v=1;t="Prix > EMA courte > moyenne > longue : alignement haussier."}
+ else if(P<e[0]&&e[0]<e[1]&&e[1]<e[2]){v=-1;t="Alignement baissier complet."}
+ else{v=Math.sign(E[1][L]-E[1][L-2])*.4;t="EMA mélangées : tendance peu claire."}
+ add("Tendance EMA",'t',v,1.2,t,"Les moyennes mobiles exponentielles lissent le prix. Quand prix et EMA sont rangés dans le même ordre, la tendance est saine : on trade dans son sens.");
+ add("ADX / DI",'t',D.adx>=20?Math.sign(D.p-D.m)*Math.min(1,D.adx/40):0,1,`ADX ${D.adx.toFixed(0)} : ${trend?"marché directionnel":"marché sans direction (range)"}.`,"L'ADX mesure la force de la tendance, pas son sens. Au-dessus de 22 environ : on suit la tendance. En dessous : on joue les rebonds. +DI contre -DI donne le sens.");
+ const [f,s,g]=sm?[6,13,5]:[12,26,9],ef=ema(c,f),es=ema(c,s),m=ef.map((x,i)=>x-es[i]),sg=ema(m,g),H=m.map((x,i)=>x-sg[i]),hv=H[L],hp=H[L-1],gw=Math.abs(hv)>Math.abs(hp);
+ add("MACD",'t',hv*hp<0?Math.sign(hv):Math.sign(hv)*(gw?.8:.4),1,hv*hp<0?"Croisement MACD à l'instant.":`Histogramme ${hv>0?"positif":"négatif"} ${gw?"et grandissant":"mais qui faiblit"}.`,"Le MACD compare deux EMA. Le croisement avec sa ligne signal et la taille de l'histogramme montrent si l'élan grandit ou s'essouffle.");
+ const R=rsi(c,Math.min(14,N-3));
+ add("RSI",'r',R<30?1:R>70?-1:R<42?.4:R>58?-.4:0,1,`RSI ${R.toFixed(0)} : ${R<30?"survente":R>70?"surachat":"zone neutre"}.`,"Le RSI va de 0 à 100. Sous 30 le prix a trop baissé (rebond possible), au-dessus de 70 il a trop monté. Fiable surtout en range, dangereux en forte tendance.");
+ const kn=Math.min(14,N-3),st=i=>{const a=Math.max(0,i-kn+1),hh=Math.max(...h.slice(a,i+1)),ll=Math.min(...l.slice(a,i+1));return 100*(c[i]-ll)/((hh-ll)||1)},K=[st(L-2),st(L-1),st(L)],Kv=K[2],Dv=(K[0]+K[1]+K[2])/3;
+ add("Stochastique",'r',Kv<20?(Kv>K[1]?1:.5):Kv>80?(Kv<K[1]?-1:-.5):(Kv-Dv)/40,1,`%K ${Kv.toFixed(0)} : ${Kv<20?"zone basse":Kv>80?"zone haute":"zone médiane"}.`,"Le stochastique situe la clôture dans la fourchette récente. Une remontée depuis la zone basse (ou une descente depuis la zone haute) signale un retournement.");
+ const bn=Math.min(20,N),w=c.slice(-bn),mu=w.reduce((a,b)=>a+b)/bn,sd=Math.sqrt(w.reduce((a,b)=>a+(b-mu)**2,0)/bn)||1e-9,pos=(P-(mu-2*sd))/(4*sd);
+ add("Bandes de Bollinger",'r',(.5-pos)*1.6,1,pos>1?"Prix sorti de la bande haute.":pos<0?"Prix sorti de la bande basse.":`Prix à ${(pos*100).toFixed(0)}% de la largeur des bandes.`,"Les bandes entourent la moyenne à ±2 écarts-types. Le prix y retourne souvent après un excès. Bandes très serrées = explosion de volatilité à venir.");
+ const sh=swings(h,1),sl=swings(l,0),lv=[...sh.map(i=>h[i]),...sl.map(i=>l[i])],sup=lv.filter(x=>x<=P-.05*A).sort((a,b)=>b-a),res=lv.filter(x=>x>=P+.05*A).sort((a,b)=>a-b),S1=sup.length?sup[0]:Math.min(...l),R1=res.length?res[0]:Math.max(...h),ds=(P-S1)/A,dr=(R1-P)/A;
+ add("Support / Résistance",'b',ds<.7&&ds<dr?.8:dr<.7?-.8:0,1.2,ds<.7&&ds<dr?"Prix collé à un support : rebond probable.":dr<.7?"Prix collé à une résistance : rejet probable.":"Prix loin des niveaux clés.","Un support est un ancien creux où les acheteurs sont revenus, une résistance un ancien sommet où les vendeurs ont réagi. Près d'un niveau, on parie sur le rebond.");
+ const a2=sh.slice(-2),b2=sl.slice(-2);let ms=0,mt="Structure incomplète.";
+ if(a2.length==2&&b2.length==2){const hh=h[a2[1]]>h[a2[0]],hl=l[b2[1]]>l[b2[0]];ms=hh&&hl?1:!hh&&!hl?-1:0;mt=hh&&hl?"Sommets et creux de plus en plus hauts.":!hh&&!hl?"Sommets et creux de plus en plus bas.":"Structure contradictoire."}
+ add("Structure de marché",'t',ms,1,mt,"Une tendance haussière fait des sommets et des creux de plus en plus hauts, une baissière l'inverse. Tant que la structure tient, on ne trade pas contre elle.");
+ const bd=i=>Math.abs(c[i]-o[i]),rg=i=>h[i]-l[i]||1,uw=i=>h[i]-Math.max(o[i],c[i]),lw=i=>Math.min(o[i],c[i])-l[i],gr=i=>c[i]>o[i],rd=i=>c[i]<o[i],i=L,j=L-1,k=L-2;
+ let pv=0,pn="Aucun motif net.";
+ if(rd(j)&&gr(i)&&c[i]>=o[j]&&o[i]<=c[j]&&bd(i)>bd(j)){pv=1;pn="Avalement haussier."}
+ else if(gr(j)&&rd(i)&&c[i]<=o[j]&&o[i]>=c[j]&&bd(i)>bd(j)){pv=-1;pn="Avalement baissier."}
+ else if(rd(k)&&bd(j)<.4*rg(j)&&gr(i)&&c[i]>(o[k]+c[k])/2){pv=.9;pn="Étoile du matin."}
+ else if(gr(k)&&bd(j)<.4*rg(j)&&rd(i)&&c[i]<(o[k]+c[k])/2){pv=-.9;pn="Étoile du soir."}
+ else if(bd(i)>0&&lw(i)>=2*bd(i)&&uw(i)<=.35*rg(i)){pv=.7;pn="Marteau (longue mèche basse)."}
+ else if(bd(i)>0&&uw(i)>=2*bd(i)&&lw(i)<=.35*rg(i)){pv=-.7;pn="Étoile filante (longue mèche haute)."}
+ else if(gr(i)&&gr(j)&&gr(k)&&bd(i)>.5*A&&bd(j)>.5*A){pv=.5;pn="Trois soldats : élan haussier."}
+ else if(rd(i)&&rd(j)&&rd(k)&&bd(i)>.5*A&&bd(j)>.5*A){pv=-.5;pn="Trois corbeaux : élan baissier."}
+ add("Figures de bougies",'b',pv,1,pn,"Les bougies racontent le combat acheteurs/vendeurs. Un avalement ou une longue mèche montre qu'un camp vient de prendre le dessus. Plus fort quand il se forme sur un support ou une résistance.");
+ const dir=gr(L)?1:rd(L)?-1:0;let sk=0;for(let q=L;q>=0&&dir&&(dir>0?gr(q):rd(q));q--)sk++;
+ add("Série de bougies",'r',sk>=4?-dir*.6:sk>=2?dir*.3:0,.8,sk>=4?`${sk} bougies de suite : risque d'essoufflement.`:sk>=2?`${sk} bougies dans le même sens : élan en cours.`:"Pas de série.","Après 4 bougies identiques, le mouvement est souvent étiré et une pause ou un retour est probable. À 2-3 bougies, l'élan se poursuit plutôt.");
+ const ha=[];C.forEach((x,q)=>ha.push({o:q?(ha[q-1].o+ha[q-1].c)/2:(x.o+x.c)/2,c:(x.o+x.h+x.l+x.c)/4}));
+ const hg=ha.slice(-3).map(x=>x.c>x.o?1:-1),hs=hg.reduce((a,b)=>a+b);
+ add("Heikin-Ashi",'t',hs==3?.9:hs==-3?-.9:hg[2]*.3,.9,hs==3?"3 bougies HA haussières.":hs==-3?"3 bougies HA baissières.":"Bougies HA mélangées.","Les bougies Heikin-Ashi sont moyennées : elles filtrent le bruit. Trois bougies de la même couleur confirment une tendance propre.");
+ const mb=Math.min(5,N-1),roc=(P-c[L-mb])/A;
+ add("Momentum",'t',roc/3,.8,`Variation sur ${mb} bougies : ${roc>0?"+":""}${roc.toFixed(1)} ATR.`,"Le momentum mesure la vitesse du prix sur les dernières bougies, comparée à la volatilité moyenne (ATR). Un prix qui accélère dans un sens a de l'élan.");
+ let sw=0,ss=0,pos_=0,neg=0;
+ S.forEach(q=>{q.ew=q.w*(q.tag=='t'?(trend?1.3:.6):q.tag=='r'?(trend?.5:1.3):1);ss+=q.v*q.ew;sw+=q.ew;if(q.v>=.25)pos_+=q.ew;if(q.v<=-.25)neg+=q.ew});
+ const score=ss/sw,dn=score>0?1:-1,ag=dn>0?pos_:neg,op=dn>0?neg:pos_,conflict=op>.7*ag&&Math.abs(score)<.4,act=Math.abs(score)<.2||conflict?0:dn;
+ let ent,tgt,inv;
+ if(dn>0){const cd=[S1,e[1],mu,e[0]].filter(x=>x<=P).sort((a,b)=>b-a);ent=cd.length?cd[0]:P;tgt=R1>P?R1:P+1.5*A;inv=Math.min(ent,S1)-.5*A}
+ else{const cd=[R1,e[1],mu,e[0]].filter(x=>x>=P).sort((a,b)=>a-b);ent=cd.length?cd[0]:P;tgt=S1<P?S1:P-1.5*A;inv=Math.max(ent,R1)+.5*A}
+ const dist=Math.abs(P-ent)/A,now=dist<=.5,ab=C.slice(-10).reduce((a,x)=>a+Math.abs(x.c-x.o),0)/Math.min(10,N)||A*.5,wait=Math.min(8,Math.max(1,Math.ceil(dist*A/ab)));
+ let nc=trend?2:1;if(Math.abs(score)>.5&&D.adx>=25)nc=3;if(Math.abs(pv)>=.7&&!trend)nc=1;
+ const xs=[3,5,10,15,30,60,120,180,300,600,900,1800,3600];let ex=tf*nc;ex=xs.reduce((a,b)=>Math.abs(b-ex)<Math.abs(a-ex)?b:a);
+ return{S,score,act,dn,conflict,ent:now?P:ent,tgt,inv,dist,now,wait,ex,nc,trend,D,P,sup:sup.slice(0,2),res:res.slice(0,2),pos:pos_,neg,tf}}
+/* ---------- affichage ---------- */
+const fT=s=>s<60?s+" s":s%60?`${Math.floor(s/60)} min ${s%60} s`:`${s/60} min`;
+function px(v,ex){const ph=parseFloat($('#ph').value),pl=parseFloat($('#pl').value);if(isFinite(ph)&&isFinite(pl)&&ph>pl){const r=ph-pl,x=pl+v/ex.h*r;return x.toFixed(r<1?5:r<100?3:2)}return`${Math.round(v/ex.h*100)} % de la hauteur`}
+function draw(R,tmp){
+ cx.drawImage(base,0,0);const fs=Math.max(12,cv.width/80);cx.lineWidth=Math.max(1,cv.width/900);
+ const rc=tmp||(R&&crop);if(rc){cx.strokeStyle="#f4b942";cx.setLineDash([6,4]);cx.strokeRect(rc.x,rc.y,rc.w,rc.h);cx.setLineDash([])}
+ if(!R)return;const X=R.ex,Y=v=>X.y0+X.h-v;
+ cx.strokeStyle="rgba(255,255,255,.35)";X.C.forEach(c=>cx.strokeRect(c.x,Y(c.h),Math.max(1,c.w),c.h-c.l));
+ const line=(v,col,lab,dash)=>{cx.strokeStyle=col;cx.fillStyle=col;cx.setLineDash(dash?[8,5]:[]);cx.lineWidth=Math.max(1.5,cv.width/700);cx.beginPath();cx.moveTo(X.x0,Y(v));cx.lineTo(X.x0+X.w,Y(v));cx.stroke();cx.setLineDash([]);cx.font=`bold ${fs}px sans-serif`;cx.fillText(lab,X.x0+6,Y(v)-5)};
+ R.sup.forEach(v=>line(v,"rgba(143,164,192,.8)","support",1));R.res.forEach(v=>line(v,"rgba(143,164,192,.8)","résistance",1));
+ if(R.act){line(R.ent,"#f4b942",R.now?"ENTRÉE (maintenant)":"ENTRÉE (attendre ici)");line(R.tgt,"#3dd6a9","objectif",1);line(R.inv,"#ff7a6b","invalidation",1)}}
+function render(R){
+ const a=R.act,X=R.ex,cls=a>0?'u':a<0?'d':'w',T=a>0?"ACHETER (CALL ▲)":a<0?"VENDRE (PUT ▼)":"ATTENDRE",str=Math.round(Math.abs(R.score)*100);
+ let h=`<section class="pn v ${cls}"><h2>${T}</h2><p>Force du signal : <b>${str}/100</b> · ${R.pos>R.neg?"majorité haussière":"majorité baissière"} · marché ${R.trend?"en tendance (ADX "+R.D.adx.toFixed(0)+")":"en range (ADX "+R.D.adx.toFixed(0)+")"}</p>`;
+ if(!a)h+=`<p>${R.conflict?"Les stratégies se contredisent : aucune entrée propre.":"Le signal est trop faible pour risquer un trade."} Refais un scan à la prochaine bougie (dans ${fT(R.tf)} au maximum) ou quand le prix touche un support ou une résistance.</p>`;
+ else{const w=R.now?"Entre maintenant, à l'ouverture de la prochaine bougie.":R.dist>2.5?"Le prix a déjà trop couru : ne le poursuis pas, attends un nouveau signal.":`Attends que le prix revienne sur la ligne d'entrée (${px(R.ent,X)}), environ ${R.wait} bougie(s) soit ${fT(R.wait*R.tf)}. S'il ne l'a pas touchée après ${R.wait+2} bougies, annule.`;
+  h+=`<p><b>Quand :</b> ${w}</p><div class="k"><div><b>Ligne d'entrée</b>${px(R.ent,X)}</div><div><b>Objectif</b>${px(R.tgt,X)}</div><div><b>Invalidation (scénario faux)</b>${px(R.inv,X)}</div><div><b>Temps de trade conseillé</b>${fT(R.ex)} (${R.nc} bougie${R.nc>1?"s":""} de ${fT(R.tf)})</div></div>`}
+ h+=`</section><section class="pn"><h3 style="margin-top:0">Pourquoi : ${R.S.length} stratégies lues (${X.C.length} bougies détectées)</h3><small>Score = moyenne pondérée des votes. En tendance, EMA, MACD et structure pèsent plus ; en range, RSI, stochastique et Bollinger pèsent plus.</small>`;
+ R.S.forEach(q=>{const w=Math.abs(q.v)*50,col=q.v>=0?"var(--up)":"var(--dn)";h+=`<div class="s"><div><b>${q.n}</b><div class="bar"><i style="background:${col};width:${w}%;${q.v>=0?"left:50%":"right:50%"}"></i></div></div><div>${q.v>=.25?"▲ hausse":q.v<=-.25?"▼ baisse":"● neutre"} : ${q.txt}</div><details><summary>Apprendre</summary>${q.les}</details></div>`});
+ $('#out').innerHTML=h+"</section>"}
+function run(){const ex=extract();
+ if(ex.C.length<15){draw(null);$('#out').innerHTML=`<section class="pn err">Je ne lis que ${ex.C.length} bougies (il m'en faut 15 au moins). Zoome sur le graphique, trace un rectangle sur les bougies, ou coche « Inverser les couleurs » si ta hausse n'est pas verte.</section>`;return}
+ const R=analyze(ex.C,+$('#tf').value);R.ex=ex;draw(R);render(R)}
+/* ---------- événements ---------- */
+$('#file').onchange=e=>load(e.target.files[0]);
+addEventListener('paste',e=>{const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'));if(it)load(it.getAsFile())});
+['dragover','drop'].forEach(n=>addEventListener(n,e=>{e.preventDefault();$('#drop').classList.toggle('on',n=='dragover');if(n=='drop')load(e.dataTransfer.files[0])}));
+['tf','ph','pl','inv','rm'].forEach(id=>$('#'+id).oninput=()=>{$('#rv').textContent=$('#rm').value;if(loaded)run()});
+$('#rst').onclick=()=>{crop=null;if(loaded)run()};
+let dg=null;const pt=e=>{const r=cv.getBoundingClientRect(),s=cv.width/r.width;return{x:(e.clientX-r.left)*s,y:(e.clientY-r.top)*s}};
+const rect=(a,b)=>({x:Math.round(Math.min(a.x,b.x)),y:Math.round(Math.min(a.y,b.y)),w:Math.round(Math.abs(a.x-b.x)),h:Math.round(Math.abs(a.y-b.y))});
+cv.onpointerdown=e=>{dg=pt(e);cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(dg)draw(null,rect(dg,pt(e)))};
+cv.onpointerup=e=>{if(!dg)return;const r=rect(dg,pt(e));dg=null;if(r.w>40&&r.h>40)crop=r;run()};
+</script></body></html>
