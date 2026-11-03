@@ -82,16 +82,20 @@ pre.ai{white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 inherit;font-fam
           <input type="file" id="file" accept="image/*" hidden>
           <div class="opts">
             <div><label>Durée d'une bougie sur ton graphique<select id="tf"><option value="1">M1 — 1 minute</option><option value="2">M2 — 2 minutes</option><option value="5" selected>M5 — 5 minutes</option><option value="15">M15 — 15 minutes</option><option value="30">M30 — 30 minutes</option><option value="60">H1 — 1 heure</option></select></label></div>
-            <div><label>Temps d'expiration que tu comptes mettre<select id="exp"><option value="0">Auto (l'outil conseille)</option><option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select></label></div>
-            <div><label>Paire / actif (pour le journal)<input type="text" id="pair" placeholder="ex: EUR/USD"></label></div>
-            <div><label>Prix où je veux trader (optionnel)<input type="text" id="lvl" placeholder="ex: 1.11230" inputmode="decimal"></label></div>
           </div>
-          <label class="chk"><input type="checkbox" id="ignoreLast" checked> Ignorer la dernière bougie (elle est encore en formation)</label>
-          <label class="chk"><input type="checkbox" id="invert"> Mes couleurs sont inversées (rouge = hausse, vert = baisse)</label>
-          <label class="chk"><input type="checkbox" id="boxes"> Afficher les bougies détectées (pour vérifier la lecture)</label>
-          <button class="act go" id="analyze" disabled style="margin-top:10px">Analyser l'image</button>
-          <button class="act" id="calBtn" disabled style="margin-top:8px;width:100%">📏 Calibrer les prix (2 clics sur l'axe des prix)</button>
-          <div class="small" id="calInfo" style="margin-top:6px">Optionnel : clique sur 2 graduations de l'axe des prix de l'image et tape leur prix. Les lignes et le pending trade afficheront alors les prix exacts.</div>
+          <details style="margin:4px 0 10px"><summary class="small" style="cursor:pointer">Options avancées</summary>
+            <div class="opts">
+              <div><label>Temps d'expiration que tu comptes mettre<select id="exp"><option value="0">Auto (l'outil conseille)</option><option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select></label></div>
+              <div><label>Paire / actif (pour le journal)<input type="text" id="pair" placeholder="ex: EUR/USD"></label></div>
+              <div><label>Prix précis à tester (optionnel)<input type="text" id="lvl" placeholder="ex: 1.11230" inputmode="decimal"></label></div>
+            </div>
+            <label class="chk"><input type="checkbox" id="ignoreLast" checked> Ignorer la dernière bougie (elle est encore en formation)</label>
+            <label class="chk"><input type="checkbox" id="invert"> Mes couleurs sont inversées (rouge = hausse, vert = baisse)</label>
+            <label class="chk"><input type="checkbox" id="boxes"> Afficher les bougies détectées (pour vérifier la lecture)</label>
+          </details>
+          <button class="act" id="calBtn" disabled style="margin-bottom:8px;width:100%">📏 Étape 2 : calibrer les prix (2 clics sur l'axe des prix)</button>
+          <div class="small" id="calInfo" style="margin-bottom:10px">Clique sur 2 graduations de l'axe des prix de l'image et tape leur prix, pour que l'outil te donne les prix exacts.</div>
+          <button class="act go" id="analyze" disabled>Étape 3 : analyser (achat ou vente)</button>
           <div class="err" id="err"></div>
           <div class="chartwrap" id="chartwrap"><canvas id="cv"></canvas></div>
           <p class="small" style="margin-top:10px">Astuce : recadre la capture sur la zone des bougies uniquement (sans les menus), avec 40 à 100 bougies bien visibles. Retire les indicateurs colorés en vert ou rouge du graphique pour une lecture plus fiable.</p>
@@ -108,18 +112,19 @@ pre.ai{white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 inherit;font-fam
             <div class="kv"><span>Force du signal</span><b id="strength"></b></div>
             <div class="kv"><span>Marché (ADX)</span><b id="regime"></b></div>
             <div class="kv"><span>Accord des stratégies</span><b id="agree"></b></div>
-            <div class="box hidden" id="lvlBox"></div>
+            <div class="box" id="whyBox"></div>
             <div class="box" id="pendBox"></div>
-            <div class="box" id="entryBox"></div>
-            <div class="box" id="expiryBox"></div>
-            <div class="box" id="linesBox"></div>
+            <div class="box hidden" id="lvlBox"></div>
+            <div class="box hidden" id="entryBox"></div>
+            <div class="box hidden" id="expiryBox"></div>
+            <div class="box hidden" id="linesBox"></div>
             <div style="margin-top:12px"><button class="act" id="save">+ Enregistrer dans le journal</button></div>
           </div>
         </div>
 
         <div class="panel hidden" id="stratPanel">
-          <h2>Stratégies utilisées (pour apprendre)</h2>
-          <div id="stratList"></div>
+          <details><summary style="cursor:pointer;font-weight:700;font-size:14px">Voir toutes les stratégies analysées</summary>
+          <div id="stratList" style="margin-top:10px"></div></details>
         </div>
 
         <div class="panel">
@@ -451,12 +456,15 @@ function analyze(all,opt){
   let signal=score>=0.22?'CALL':score<=-0.22?'PUT':'WAIT';
   const why=[];
   const range=Math.max(...h.slice(-30))-Math.min(...l.slice(-30));
-  if(signal!=='WAIT'&&range<3.5*A){signal='WAIT';why.push('Marché presque plat : amplitude trop faible pour un trade fiable.');}
-  if(signal==='CALL'&&dr<0.5&&res.n>=2){signal='WAIT';why.push('Achat refusé : prix collé à une résistance testée plusieurs fois.');}
-  if(signal==='PUT'&&ds<0.5&&sup.n>=2){signal='WAIT';why.push('Vente refusée : prix collé à un support testé plusieurs fois.');}
-  if(signal!=='WAIT'&&agreement<0.6){signal='WAIT';why.push('Indicateurs trop contradictoires (accord '+Math.round(agreement*100)+' %).');}
-  if(signal==='WAIT'&&!why.length)why.push('Score trop proche de zéro : les stratégies ne convergent pas.');
-  const s=Math.abs(score),strength=signal==='WAIT'?'Aucune':s<0.4?'Faible':s<0.6?'Moyenne':'Forte';
+  if(signal!=='WAIT'&&range<3.5*A){signal='WAIT';why.push('Marché presque plat : peu de mouvement, le résultat sera très aléatoire.');}
+  if(signal==='CALL'&&dr<0.5&&res.n>=2){signal='WAIT';why.push('Prix collé à une résistance testée plusieurs fois : l\'achat peut être rejeté.');}
+  if(signal==='PUT'&&ds<0.5&&sup.n>=2){signal='WAIT';why.push('Prix collé à un support testé plusieurs fois : la vente peut être rejetée.');}
+  if(signal!=='WAIT'&&agreement<0.6){signal='WAIT';why.push('Indicateurs contradictoires (accord '+Math.round(agreement*100)+' %) : signal peu fiable.');}
+  if(signal==='WAIT'&&!why.length)why.push('Signal peu clair : les stratégies ne convergent pas, la direction donnée est seulement celle qui ressort légèrement.');
+  // Toujours donner une direction : achat ou vente (la confiance indique si le signal est faible)
+  let forced=false;
+  if(signal==='WAIT'){forced=true;const dsc=Math.abs(score)>1e-6?score:(e9[i]-e21[i]);signal=dsc>=0?'CALL':'PUT';}
+  const s=Math.abs(score),strength=s<0.22?'Très faible':s<0.4?'Faible':s<0.6?'Moyenne':'Forte';
   const dirSign=signal==='CALL'?1:signal==='PUT'?-1:sg(score);
   const agreeing=V.filter(v=>sg(v.vote)===dirSign&&Math.abs(v.vote)>=0.3).length;
 
@@ -577,7 +585,7 @@ function analyze(all,opt){
     }
   }
   const bigger=allowed.find(m=>m>=tf*3)||60;
-  return {pending,plan,signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
+  return {pending,plan,forced,signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
     levels:{sup:sup.p,res:res.p,entry:entryLevel,target,inv,now},
     entryAdvice,waitFor,expiry:{candles:candlesN,min:expMin,note:expNote,userNote,rangeTxt:tf+'–'+(tf*3)+' min',higher:bigger},
     series:{e9,e21,cs},ignoredLast:!!opt.ignoreLast};
@@ -616,7 +624,7 @@ function loadFile(f){
     cv.width=W;cv.height=H;ctx.drawImage(base,0,0);$('chartwrap').style.display='block';
     $('analyze').disabled=false;$('askAI').disabled=false;
     cal=null;calPts=[];calMode=0;$('calBtn').disabled=false;cv.style.cursor='';
-    $('calInfo').textContent='Optionnel : clique sur 2 graduations de l\'axe des prix de l\'image et tape leur prix. Les lignes et le pending trade afficheront alors les prix exacts.';$('err').textContent='';
+    $('calInfo').textContent='Clique sur 2 graduations de l\'axe des prix de l\'image et tape leur prix, pour que l\'outil te donne les prix exacts.';$('err').textContent='';
     all=null;last=null;$('resBody').classList.add('hidden');$('stratPanel').classList.add('hidden');
     setSignal('wait','IMAGE CHARGÉE','Clique sur « Analyser l\'image ».');
   };
@@ -779,7 +787,15 @@ function render(r){
   const L=r.levels;
   const cls=r.signal==='CALL'?'buy':r.signal==='PUT'?'sell':'wait';
   const word=r.signal==='CALL'?'ACHAT (CALL ▲)':r.signal==='PUT'?'VENTE (PUT ▼)':'ATTENDRE';
-  setSignal(cls,word,r.signal==='WAIT'?r.why.join(' '):'Force '+r.strength.toLowerCase()+' • '+r.agreeing+' stratégies sur '+r.total+' vont dans ce sens');
+  setSignal(cls,word,'Confiance '+r.strength.toLowerCase()+' • '+r.agreeing+' stratégies sur '+r.total+' vont dans ce sens');
+  {
+    const ds=r.signal==='CALL'?1:-1;
+    const top=r.votes.filter(v=>Math.sign(v.vote)===ds&&Math.abs(v.vote)>=0.3).sort((a,b)=>Math.abs(b.vote*b.w)-Math.abs(a.vote*a.w)).slice(0,3);
+    let h='<b>🧠 Stratégies utilisées pour ce signal</b>';
+    h+=top.length?top.map(v=>'<div class="strat"><div class="h"><span>'+esc(v.name)+'<span class="cat">'+esc(v.cat)+'</span></span></div><div class="t">'+esc(v.text)+'</div></div>').join(''):'<div class="small" style="margin-top:6px">Aucune stratégie forte : le signal repose sur un léger avantage global.</div>';
+    if(r.why&&r.why.length)h+='<div class="small" style="margin-top:8px;color:var(--yellow)">À savoir : '+r.why.map(esc).join(' ')+'</div>';
+    $('whyBox').innerHTML=h;
+  }
   $('resBody').classList.remove('hidden');$('stratPanel').classList.remove('hidden');
   renderPend(r);renderLevel(r);
   const pct=Math.round(Math.abs(r.score)*100);
