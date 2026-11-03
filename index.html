@@ -105,6 +105,7 @@ pre.ai{white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 inherit;font-fam
             <div class="kv"><span>Force du signal</span><b id="strength"></b></div>
             <div class="kv"><span>Marché (ADX)</span><b id="regime"></b></div>
             <div class="kv"><span>Accord des stratégies</span><b id="agree"></b></div>
+            <div class="box" id="pendBox"></div>
             <div class="box" id="entryBox"></div>
             <div class="box" id="expiryBox"></div>
             <div class="box" id="linesBox"></div>
@@ -448,7 +449,7 @@ function analyze(all,opt){
 
   // Lignes
   const lines=[];
-  let entryAdvice='',entryLevel=now,target=null,inv=null,waitFor='';
+  let entryAdvice='',entryLevel=now,target=null,inv=null,waitFor='',pullbackFlag=false;
   if(signal==='CALL'||signal==='PUT'){
     const call=signal==='CALL';
     const ext=call?(now-e9[i])/A:(e9[i]-now)/A;
@@ -456,6 +457,7 @@ function analyze(all,opt){
       const cands=call?[e9[i],e21[i],sup.p].filter(v=>v<now-0.3*A):[e9[i],e21[i],res.p].filter(v=>v>now+0.3*A);
       if(cands.length){
         entryLevel=call?Math.max(...cands):Math.min(...cands);
+        pullbackFlag=true;
         entryAdvice='Le prix est étiré ('+f1(ext)+' ATR loin de l\'EMA 9). Ne '+(call?'achète':'vends')+' pas maintenant : attends un retour vers la ligne BLEUE « Entrée » puis une bougie de rejet '+(call?'verte':'rouge')+'.';
       }
     }
@@ -487,8 +489,30 @@ function analyze(all,opt){
     userNote=r<1?'Ton choix ('+opt.userExp+' min) est plus court qu\'une bougie : très aléatoire.':r>4?'Ton choix ('+opt.userExp+' min = '+Math.round(r)+' bougies) est trop long : le signal perd sa valeur au-delà de 3 bougies.':'Ton choix ('+opt.userExp+' min = '+Math.round(r*10)/10+' bougie(s)) est acceptable.';
   }
 
+  // Trade en attente : à quelle barre entrer et pour combien de temps
+  const snap=m=>allowed.reduce((a,b)=>Math.abs(b-m)<Math.abs(a-m)?b:a);
+  const pBars=signal!=='WAIT'?candlesN:(regime==='trend'?3:regime==='range'?1:2);
+  const pMin=signal!=='WAIT'?expMin:snap(pBars*tf);
+  let pending;
+  if(signal!=='WAIT'){
+    const call=signal==='CALL';
+    if(pullbackFlag){
+      pending={kind:'pullback',dir:signal,maxBars:3,
+        text:'Ordre EN ATTENTE : ne prends pas la barre suivante. Attends que le prix revienne toucher la ligne bleue, puis qu\'une bougie '+(call?'verte':'rouge')+' clôture. Entre à l\'ouverture de la barre qui suit cette clôture.',
+        cancel:'Annule l\'ordre si, après 3 barres, le prix n\'a pas touché la ligne bleue, ou si une bougie clôture au-delà de la ligne jaune (invalidation).'};
+    }else{
+      pending={kind:'now',dir:signal,maxBars:1,
+        text:'Entre à l\'OUVERTURE de la prochaine barre (barre n°1 après la dernière bougie fermée), jamais en milieu de bougie.',
+        cancel:'Si tu rates l\'ouverture (plus de 10 secondes de retard), saute ce trade et attends le signal suivant.'};
+    }
+  }else{
+    pending={kind:'breakout',dir:null,maxBars:3,
+      text:'Ordre EN ATTENTE conditionnel : ACHAT si une bougie clôture AU-DESSUS de la ligne rouge ; VENTE si une bougie clôture SOUS la ligne verte. Entre à l\'ouverture de la barre suivante.',
+      cancel:'Annule l\'ordre si rien ne se passe après 3 barres, puis refais une capture.'};
+  }
+  pending.expMin=pMin;pending.expBars=pBars;
   const bigger=allowed.find(m=>m>=tf*3)||60;
-  return {signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
+  return {pending,signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
     levels:{sup:sup.p,res:res.p,entry:entryLevel,target,inv,now},
     entryAdvice,waitFor,expiry:{candles:candlesN,min:expMin,note:expNote,userNote,rangeTxt:tf+'–'+(tf*3)+' min',higher:bigger},
     series:{e9,e21,cs},ignoredLast:!!opt.ignoreLast};
@@ -536,6 +560,38 @@ function setSignal(cls,word,sub){$('signal').className='signal '+cls;$('sigWord'
 
 // Analyse
 $('analyze').addEventListener('click',run);
+['tf','exp'].forEach(id=>$(id).addEventListener('change',()=>{if(last&&last.res)run();}));
+
+// Trade en attente : planning + compte à rebours
+let pendTimer=null,lastBeep=0;
+const hms=ms=>new Date(ms).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const hm=ms=>new Date(ms).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=0.15;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+0.25);}catch(e){}}
+function renderPend(r){
+  if(pendTimer){clearInterval(pendTimer);pendTimer=null;}
+  const p=r.pending;if(!p){$('pendBox').innerHTML='';return;}
+  const tf=Number($('tf').value),ms=tf*60000;
+  const title=p.kind==='now'?'⚡ Trade immédiat : barre n°1':p.kind==='pullback'?'⏳ Trade en attente (retour sur la ligne bleue)':'⏳ Trade en attente conditionnel (cassure)';
+  const dur=p.expMin?'<span class="blue">'+p.expMin+' min</span> ≈ '+p.expBars+' barre'+(p.expBars>1?'s':'')+' de '+tf+' min':'—';
+  $('pendBox').innerHTML='<b>'+title+'</b><br>'+esc(p.text)+'<br><span class="small">'+esc(p.cancel)+'</span>'+
+    '<div class="kv" style="margin-top:8px"><span>Barre n°1 s\'ouvre à</span><b id="pNext"></b></div>'+
+    '<div class="kv"><span>Compte à rebours</span><b id="pCount" class="blue"></b></div>'+
+    '<div class="kv"><span>'+(p.kind==='now'?'Entrée valable jusqu\'à':'Ordre valable jusqu\'à')+'</span><b id="pValid"></b></div>'+
+    '<div class="kv"><span>Durée du trade à régler</span><b>'+dur+'</b></div>'+
+    (p.kind==='now'?'<div class="kv"><span>Le trade se termine à</span><b id="pEnd"></b></div>':'<div class="small">Au moment où tu entres, règle l\'expiration sur '+p.expMin+' min.</div>')+
+    '<label class="chk" style="margin-top:8px"><input type="checkbox" id="pBeep"> 🔔 Bip 3 secondes avant l\'ouverture d\'une barre</label>'+
+    '<div class="small">Basé sur l\'horloge de ton appareil, avec des barres alignées sur les minutes rondes. La capture doit dater de moins d\'une barre, sinon refais-en une.</div>';
+  const upd=()=>{
+    const now=Date.now(),next=Math.ceil((now+1)/ms)*ms,left=Math.max(0,Math.round((next-now)/1000));
+    const mm=Math.floor(left/60),ss=left%60;
+    $('pNext').textContent=hms(next);
+    $('pCount').textContent=(mm<10?'0':'')+mm+':'+(ss<10?'0':'')+ss;
+    $('pValid').textContent=hms(p.kind==='now'?next+10000:next+p.maxBars*ms);
+    if($('pEnd'))$('pEnd').textContent=hms(next+p.expMin*60000);
+    if(left<=3&&left>0&&$('pBeep')&&$('pBeep').checked&&lastBeep!==next){lastBeep=next;beep();}
+  };
+  upd();pendTimer=setInterval(upd,1000);
+}
 ['boxes'].forEach(id=>$(id).addEventListener('change',()=>{if(last)draw(last);}));
 function run(){
   $('err').textContent='';
@@ -560,6 +616,7 @@ function render(r){
   const word=r.signal==='CALL'?'ACHAT (CALL ▲)':r.signal==='PUT'?'VENTE (PUT ▼)':'ATTENDRE';
   setSignal(cls,word,r.signal==='WAIT'?r.why.join(' '):'Force '+r.strength.toLowerCase()+' • '+r.agreeing+' stratégies sur '+r.total+' vont dans ce sens');
   $('resBody').classList.remove('hidden');$('stratPanel').classList.remove('hidden');
+  renderPend(r);
   const pct=Math.round(Math.abs(r.score)*100);
   $('scoreTxt').textContent=(r.score>=0?'+':'')+Math.round(r.score*100)+' / 100';
   $('scoreBar').style.width=Math.min(100,pct*1.6)+'%';
@@ -605,10 +662,12 @@ function draw(st){
     ctx.fillStyle=col;ctx.fillText(label,11,ty+1);
   };
   const L=r.levels;
-  lineAt(L.sup,'Support','#25d695',true);lineAt(L.res,'Résistance','#ff647c',true);
+  const wt=r.signal==='WAIT';
+  lineAt(L.sup,wt?'Support : clôture dessous = VENTE':'Support','#25d695',true);lineAt(L.res,wt?'Résistance : clôture dessus = ACHAT':'Résistance','#ff647c',true);
   if(r.signal!=='WAIT'){
     lineAt(L.target,'Objectif','#ffffff',true);
-    lineAt(L.entry,r.signal==='CALL'?'Entrée ACHAT':'Entrée VENTE','#69a9ff',false);
+    const pend=r.pending&&r.pending.kind==='pullback';
+    lineAt(L.entry,(r.signal==='CALL'?'Entrée ACHAT':'Entrée VENTE')+(pend?' (en attente)':''),'#69a9ff',false);
     lineAt(L.inv,'Invalidation','#f4c45e',true);
   }
   if(r.ignoredLast&&st.all.length){
