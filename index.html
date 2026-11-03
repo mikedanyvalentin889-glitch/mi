@@ -89,6 +89,8 @@ pre.ai{white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 inherit;font-fam
           <label class="chk"><input type="checkbox" id="invert"> Mes couleurs sont inversées (rouge = hausse, vert = baisse)</label>
           <label class="chk"><input type="checkbox" id="boxes"> Afficher les bougies détectées (pour vérifier la lecture)</label>
           <button class="act go" id="analyze" disabled style="margin-top:10px">Analyser l'image</button>
+          <button class="act" id="calBtn" disabled style="margin-top:8px;width:100%">📏 Calibrer les prix (2 clics sur l'axe des prix)</button>
+          <div class="small" id="calInfo" style="margin-top:6px">Optionnel : clique sur 2 graduations de l'axe des prix de l'image et tape leur prix. Les lignes et le pending trade afficheront alors les prix exacts.</div>
           <div class="err" id="err"></div>
           <div class="chartwrap" id="chartwrap"><canvas id="cv"></canvas></div>
           <p class="small" style="margin-top:10px">Astuce : recadre la capture sur la zone des bougies uniquement (sans les menus), avec 40 à 100 bougies bien visibles. Retire les indicateurs colorés en vert ou rouge du graphique pour une lecture plus fiable.</p>
@@ -510,6 +512,9 @@ function analyze(all,opt){
       text:'Ordre EN ATTENTE conditionnel : ACHAT si une bougie clôture AU-DESSUS de la ligne rouge ; VENTE si une bougie clôture SOUS la ligne verte. Entre à l\'ouverture de la barre suivante.',
       cancel:'Annule l\'ordre si rien ne se passe après 3 barres, puis refais une capture.'};
   }
+  pending.now=now;pending.atr=A;
+  if(signal!=='WAIT'){pending.entryP=pullbackFlag?entryLevel:now;pending.invP=inv;pending.targetP=target;}
+  else{pending.buyP=res.p+0.2*A;pending.sellP=sup.p-0.2*A;}
   pending.expMin=pMin;pending.expBars=pBars;
   const bigger=allowed.find(m=>m>=tf*3)||60;
   return {pending,signal,score,strength,regime,adx,atr:A,rsi,agreement,agreeing,total:V.length,votes:V,why,
@@ -549,7 +554,9 @@ function loadFile(f){
     base=document.createElement('canvas');base.width=W;base.height=H;base.getContext('2d').drawImage(img,0,0,W,H);
     URL.revokeObjectURL(url);
     cv.width=W;cv.height=H;ctx.drawImage(base,0,0);$('chartwrap').style.display='block';
-    $('analyze').disabled=false;$('askAI').disabled=false;$('err').textContent='';
+    $('analyze').disabled=false;$('askAI').disabled=false;
+    cal=null;calPts=[];calMode=0;$('calBtn').disabled=false;cv.style.cursor='';
+    $('calInfo').textContent='Optionnel : clique sur 2 graduations de l\'axe des prix de l\'image et tape leur prix. Les lignes et le pending trade afficheront alors les prix exacts.';$('err').textContent='';
     all=null;last=null;$('resBody').classList.add('hidden');$('stratPanel').classList.add('hidden');
     setSignal('wait','IMAGE CHARGÉE','Clique sur « Analyser l\'image ».');
   };
@@ -567,13 +574,70 @@ let pendTimer=null,lastBeep=0;
 const hms=ms=>new Date(ms).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const hm=ms=>new Date(ms).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=0.15;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+0.25);}catch(e){}}
+// Calibration de l'échelle des prix (2 points cliqués sur l'axe)
+let cal=null,calPts=[],calMode=0,calDec=5;
+function fmtP(pp){
+  if(!cal)return null;
+  const y=H-pp,v=cal.p1+(y-cal.y1)*(cal.p2-cal.p1)/(cal.y2-cal.y1);
+  return v.toFixed(calDec);
+}
+$('calBtn').addEventListener('click',()=>{
+  calPts=[];cal=null;calMode=1;cv.style.cursor='crosshair';
+  $('calInfo').textContent='Clique sur une graduation de l\'axe des prix (point 1 sur 2).';
+  if(last)draw(last);if(last&&last.res)render(last.res);
+});
+cv.addEventListener('click',ev=>{
+  if(!calMode)return;
+  const rc=cv.getBoundingClientRect(),y=(ev.clientY-rc.top)*H/rc.height;
+  const s=prompt('Quel est le prix à l\'endroit cliqué (lis-le sur l\'axe des prix) ?');
+  if(s===null)return;
+  const txt=String(s).trim().replace(',','.'),v=parseFloat(txt);
+  if(!isFinite(v)){alert('Prix invalide.');return;}
+  calPts.push({y,price:v,s:txt,dec:(txt.split('.')[1]||'').length});
+  if(calPts.length===1){
+    $('calInfo').textContent='Clique maintenant sur une 2e graduation, assez éloignée de la première (point 2 sur 2).';
+  }else{
+    const a=calPts[0],b=calPts[1];
+    if(Math.abs(a.y-b.y)<20||a.price===b.price||(b.price-a.price)/(b.y-a.y)>0){
+      alert('Calibration invalide : prends 2 graduations différentes, et la plus haute sur l\'image doit avoir le prix le plus élevé.');
+      calPts=[];$('calInfo').textContent='Recommence : clique sur le point 1.';
+    }else{
+      cal={y1:a.y,p1:a.price,y2:b.y,p2:b.price};
+      calDec=Math.min(6,Math.max(a.dec,b.dec,a.price<10?5:a.price<1000?3:2));
+      calMode=0;cv.style.cursor='';
+      $('calInfo').textContent='Prix calibrés ✓ : les lignes et le pending trade affichent maintenant les prix.';
+    }
+  }
+  if(last)draw(last);if(last&&last.res)render(last.res);
+});
+function priceOrRel(pp,p){
+  const s=fmtP(pp),rel=Math.abs(pp-p.now)/p.atr;
+  if(s)return '<b>'+s+'</b>';
+  return '<b>'+(rel<0.05?'au prix actuel':rel.toFixed(1)+' ATR '+(pp>p.now?'au-dessus':'en dessous')+' du prix actuel')+'</b>';
+}
+function pendHead(p){
+  const kv=(a,b)=>'<div class="kv"><span>'+a+'</span>'+b+'</div>';
+  let h='<div style="margin-top:8px">';
+  if(p.kind==='breakout'){
+    h+=kv('<span class="good">ACHAT (CALL ▲)</span> si le prix atteint',priceOrRel(p.buyP,p));
+    h+=kv('<span class="bad">VENTE (PUT ▼)</span> si le prix atteint',priceOrRel(p.sellP,p));
+    h+='<div class="small">Un pending trade s\'ouvre au simple contact du prix : une fausse cassure te piège. Mieux vaut attendre la clôture d\'une bougie au-delà du niveau.</div>';
+  }else{
+    h+=kv('Direction',p.dir==='CALL'?'<b class="good">ACHAT (CALL ▲)</b>':'<b class="bad">VENTE (PUT ▼)</b>');
+    h+=kv(p.kind==='now'?'Prix d\'ouverture (au marché)':'Prix d\'ouverture du pending trade',priceOrRel(p.entryP,p));
+    h+=kv('Annuler si une bougie clôture au-delà de',priceOrRel(p.invP,p));
+    h+=kv('Objectif (zone de sortie visée)',priceOrRel(p.targetP,p));
+  }
+  if(!cal)h+='<div class="small" style="color:var(--yellow)">Pour voir les prix en chiffres : clique sur « Calibrer les prix » sous l\'image et donne le prix de 2 graduations de l\'axe.</div>';
+  return h+'</div>';
+}
 function renderPend(r){
   if(pendTimer){clearInterval(pendTimer);pendTimer=null;}
   const p=r.pending;if(!p){$('pendBox').innerHTML='';return;}
   const tf=Number($('tf').value),ms=tf*60000;
   const title=p.kind==='now'?'⚡ Trade immédiat : barre n°1':p.kind==='pullback'?'⏳ Trade en attente (retour sur la ligne bleue)':'⏳ Trade en attente conditionnel (cassure)';
   const dur=p.expMin?'<span class="blue">'+p.expMin+' min</span> ≈ '+p.expBars+' barre'+(p.expBars>1?'s':'')+' de '+tf+' min':'—';
-  $('pendBox').innerHTML='<b>'+title+'</b><br>'+esc(p.text)+'<br><span class="small">'+esc(p.cancel)+'</span>'+
+  $('pendBox').innerHTML='<b>'+title+'</b>'+pendHead(p)+'<div style="margin:6px 0">'+esc(p.text)+'</div><span class="small">'+esc(p.cancel)+'</span>'+
     '<div class="kv" style="margin-top:8px"><span>Barre n°1 s\'ouvre à</span><b id="pNext"></b></div>'+
     '<div class="kv"><span>Compte à rebours</span><b id="pCount" class="blue"></b></div>'+
     '<div class="kv"><span>'+(p.kind==='now'?'Entrée valable jusqu\'à':'Ordre valable jusqu\'à')+'</span><b id="pValid"></b></div>'+
@@ -649,12 +713,14 @@ function draw(st){
   if($('boxes').checked&&st.all){
     st.all.forEach(c=>{ctx.strokeStyle=c.bull?'rgba(37,214,149,.9)':'rgba(255,100,124,.9)';ctx.lineWidth=1;ctx.strokeRect(c.x0-1,c.top-1,c.x1-c.x0+3,c.bot-c.top+3);});
   }
+  calPts.forEach(q=>{ctx.strokeStyle='#ff9f1c';ctx.fillStyle='#ff9f1c';ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(0,q.y);ctx.lineTo(W*0.14,q.y);ctx.stroke();ctx.fillText('prix '+q.s,6,Math.max(fs+2,q.y-3));});
   const r=st.res;if(!r)return;
   const cs=r.series.cs;
   const curve=(arr,col)=>{ctx.beginPath();arr.forEach((v,k)=>{const x=cs[k].x,y=H-v;k?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.strokeStyle=col;ctx.lineWidth=Math.max(1.5,W/900);ctx.setLineDash([]);ctx.stroke();};
   curve(r.series.e9,'rgba(37,214,149,.85)');curve(r.series.e21,'rgba(244,196,94,.85)');
   const lineAt=(p,label,col,dash)=>{
     if(p==null||p<0||p>H)return;const y=H-p;
+    const pr=fmtP(p);if(pr)label+=' • '+pr;
     ctx.setLineDash(dash?[8,6]:[]);ctx.strokeStyle=col;ctx.lineWidth=Math.max(1.5,W/700);
     ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.setLineDash([]);
     const tw=ctx.measureText(label).width+10,ty=Math.max(fs+4,Math.min(H-2,y-2));
