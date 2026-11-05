@@ -3,162 +3,142 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mon Scanner – Signaux forex en temps réel</title>
-<meta name="description" content="Scanner de signaux forex : flux instantané, historique horodaté et statistiques de performance.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<title>Mon Scanner – Signaux live</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#070a09; --card:#101614; --line:#1c2622; --text:#eef3f0; --muted:#7e8b85;
-  --green:#3ddc97; --green-bg:#0f2a20; --radius:22px;
-  color-scheme:dark;
-}
+:root{--bg:#070a09;--card:#101614;--line:#1c2622;--text:#eef3f0;--muted:#7e8b85;--green:#3ddc97;--gb:#0f2a20;--red:#ff6b6b;color-scheme:dark}
 *{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;
-  background:var(--bg); color:var(--text); line-height:1.55;
-  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-  background-size:56px 56px; background-position:-1px -1px;
-}
-body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0,rgba(7,10,9,.2),var(--bg) 75%);pointer-events:none;z-index:-1}
-a{color:inherit;text-decoration:none}
-:focus-visible{outline:2px solid var(--green);outline-offset:3px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-
-/* nav */
-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
-.logo{font-weight:800;font-size:18px;display:flex;align-items:center;gap:10px}
-.logo i{width:30px;height:30px;border-radius:9px;background:var(--green-bg);display:grid;place-items:center;color:var(--green);font-style:normal}
-.btn{display:inline-block;padding:12px 22px;border-radius:999px;font-weight:700;font-size:15px;border:1px solid var(--line);background:var(--card);transition:border-color .2s}
-.btn:hover{border-color:var(--green)}
-.btn.primary{background:var(--green);color:#04120b;border-color:var(--green)}
-
-/* hero */
-.hero{padding:88px 0 72px;max-width:760px}
-.hero h1{font-size:clamp(38px,6vw,64px);line-height:1.05;font-weight:800;letter-spacing:-.02em}
-.hero p{color:var(--muted);font-size:18px;margin:22px 0 32px;max-width:560px}
-.hero .actions{display:flex;gap:12px;flex-wrap:wrap}
-
-/* cards */
-.grid{display:grid;gap:18px}
-.g3{grid-template-columns:repeat(3,1fr)}
-.g2{grid-template-columns:repeat(2,1fr)}
-.card{background:linear-gradient(180deg,#121917,var(--card));border:1px solid var(--line);border-radius:var(--radius);padding:26px}
-.ico{width:44px;height:44px;border-radius:14px;background:var(--green-bg);color:var(--green);display:grid;place-items:center;margin-bottom:46px}
-.ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.card h3{font-size:19px;font-weight:700;margin-bottom:8px}
-.card p{color:var(--muted);font-size:15px}
-
-/* who */
-.who{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.9fr);gap:40px;align-items:start;padding:96px 0}
-.tag{color:var(--green);font-weight:800;font-size:12px;letter-spacing:.18em;margin-bottom:14px}
-.who h2{font-size:clamp(30px,4vw,46px);line-height:1.08;font-weight:800;letter-spacing:-.02em}
-.who .card .ico{margin-bottom:34px}
-
-/* feed demo */
-.feed{padding:0 0 96px}
-.feed h2{font-size:28px;font-weight:800;margin-bottom:6px}
-.feed>.sub{color:var(--muted);margin-bottom:22px;font-size:14px}
-.table{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card)}
-.row{display:grid;grid-template-columns:1.1fr .8fr .8fr .9fr .9fr 1fr;gap:12px;padding:15px 22px;border-top:1px solid var(--line);font-size:14px;align-items:center}
-.row:first-child{border-top:0;color:var(--muted);font-weight:700;font-size:12px}
-.buy{color:var(--green);font-weight:700}.sell{color:#ff6b6b;font-weight:700}
-.pill{justify-self:start;padding:3px 10px;border-radius:999px;background:var(--green-bg);color:var(--green);font-weight:700;font-size:12px}
-.pill.off{background:#2a1414;color:#ff6b6b}
-.scroll{overflow-x:auto}.scroll .table{min-width:640px}
-
-footer{border-top:1px solid var(--line);padding:30px 0 48px;color:var(--muted);font-size:13px}
-
-@media(max-width:860px){
-  .g3,.g2{grid-template-columns:1fr}
-  .who{grid-template-columns:1fr;padding:64px 0}
-  .ico{margin-bottom:28px}
-  .hero{padding:56px 0 48px}
-}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+body{font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px;max-width:1150px;margin:0 auto;line-height:1.5}
+h1{font-size:24px;font-weight:800}h2{font-size:17px;margin:28px 0 10px}
+.top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input,button{font:inherit;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:9px 14px}
+button{cursor:pointer;font-weight:700}button.p{background:var(--green);color:#04120b;border-color:var(--green)}
+:focus-visible{outline:2px solid var(--green)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.card b{display:block;font-size:26px}.card span{color:var(--muted);font-size:13px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--card)}
+table{width:100%;border-collapse:collapse;min-width:640px;font-size:14px}
+th,td{padding:12px 16px;text-align:left;border-top:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-size:12px;border-top:0}
+.buy{color:var(--green);font-weight:800}.sell{color:var(--red);font-weight:800}.mut{color:var(--muted)}
+.pill{padding:3px 10px;border-radius:99px;background:var(--gb);color:var(--green);font-weight:700;font-size:12px}
+.pill.l{background:#2a1414;color:var(--red)}.pill.o{background:#1f2a35;color:#7cc4ff}
+small{color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="wrap">
-
-  <nav>
-    <a class="logo" href="#"><i>▲</i>Mon Scanner</a>
-    <a class="btn" href="#contact">Se connecter</a>
-  </nav>
-
-  <header class="hero">
-    <h1>Les signaux forex, livrés en temps réel.</h1>
-    <p>Ton terminal MT4 envoie chaque ordre au scanner. Tes abonnés le voient apparaître sur leur tableau de bord, sans rafraîchir la page.</p>
-    <div class="actions">
-      <a class="btn primary" href="#contact">Commencer</a>
-      <a class="btn" href="#flux">Voir le flux</a>
-    </div>
-  </header>
-
-  <section class="grid g3" aria-label="Fonctionnalités">
-    <article class="card">
-      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 12v.01M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></svg></div>
-      <h3>Flux de signaux instantané</h3>
-      <p>Ouverture, modification, clôture partielle, TP, SL et annulation s’affichent sans rafraîchir.</p>
-    </article>
-    <article class="card">
-      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
-      <h3>Historique horodaté</h3>
-      <p>Chaque événement du terminal MT4 connecté est daté et conservé dans une archive consultable.</p>
-    </article>
-    <article class="card">
-      <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 20h16M6 16v-4M10 16V8M14 16v-6M18 16V5"/></svg></div>
-      <h3>Statistiques de performance</h3>
-      <p>Taux de réussite, pips totaux, ratio risque/gain, meilleures paires et résultats mois par mois.</p>
-    </article>
-  </section>
-
-  <section class="who" aria-labelledby="who-title">
-    <div>
-      <div class="tag">POUR QUI</div>
-      <h2 id="who-title">Une plateforme de signaux à ton nom, pour fournisseurs et communautés.</h2>
-    </div>
-    <div class="grid g2">
-      <article class="card">
-        <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg></div>
-        <h3>Fournisseurs de signaux</h3>
-        <p>Automatise l’envoi de tes trades et fais payer l’accès par abonnement mensuel ou annuel.</p>
-      </article>
-      <article class="card">
-        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 18l5-6 4 3 7-9"/></svg></div>
-        <h3>Traders particuliers</h3>
-        <p>Reçois des signaux clairs et exploitables, sans dépendre de messages éparpillés ou de feuilles de calcul.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="feed" id="flux" aria-labelledby="feed-title">
-    <h2 id="feed-title">Aperçu du flux</h2>
-    <p class="sub">Données d’exemple pour la démonstration. Remplace-les par tes vrais signaux.</p>
-    <div class="scroll"><div class="table" id="table"></div></div>
-  </section>
-
-  <footer id="contact">
-    <p>© <span id="y"></span> Mon Scanner. Les signaux sont fournis à titre informatif et ne constituent pas un conseil financier. Le trading comporte un risque de perte en capital.</p>
-  </footer>
-
+<div class="top">
+  <div><h1>Mon Scanner</h1><small id="status">Chargement…</small></div>
+  <div class="ctl">
+    <select id="tf" aria-label="Unité de temps"><option>5m</option><option selected>15m</option><option>1h</option><option>4h</option></select>
+    <input id="key" placeholder="Clé Twelve Data (forex, optionnel)" size="28">
+    <button id="notif">🔔 Alertes</button>
+    <button class="p" id="go">Scanner</button>
+  </div>
 </div>
 
+<div class="cards" id="stats"></div>
+
+<h2>Marché en direct</h2>
+<div class="tw"><table><thead><tr><th>Actif</th><th>Prix</th><th>Tendance</th><th>RSI</th><th>Verdict</th></tr></thead><tbody id="mk"></tbody></table></div>
+
+<h2>Signaux ouverts</h2>
+<div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>SL</th><th>TP</th><th>UT</th></tr></thead><tbody id="open"></tbody></table></div>
+
+<h2>Historique</h2>
+<div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>Résultat</th><th>R</th></tr></thead><tbody id="hist"></tbody></table></div>
+
+<p style="margin-top:28px"><small>Outil d’aide à la décision, pas un conseil financier. Aucun signal ne garantit un gain. Les résultats ci-dessus sont ceux de cette application, calculés dans ton navigateur. Teste en démo avant de risquer de l’argent réel.</small></p>
+
 <script>
-// ===== Données d'exemple : remplace par tes vrais signaux (ou charge un fichier JSON) =====
-const signals = [
-  {pair:"XAUUSD", side:"BUY",  entry:"2,345.20", sl:"2,338.00", tp:"2,360.00", status:"Ouvert"},
-  {pair:"EURUSD", side:"SELL", entry:"1.0842",   sl:"1.0870",   tp:"1.0790",   status:"Ouvert"},
-  {pair:"GBPJPY", side:"BUY",  entry:"191.450",  sl:"190.900",  tp:"192.600",  status:"TP atteint"},
-  {pair:"USDCAD", side:"SELL", entry:"1.3610",   sl:"1.3650",   tp:"1.3540",   status:"SL touché"}
-];
-const t = document.getElementById("table");
-const head = ["Paire","Sens","Entrée","SL","TP","Statut"];
-t.innerHTML = '<div class="row">'+head.map(h=>`<span>${h}</span>`).join("")+'</div>' +
-  signals.map(s=>`<div class="row"><strong>${s.pair}</strong><span class="${s.side==="BUY"?"buy":"sell"}">${s.side}</span><span>${s.entry}</span><span>${s.sl}</span><span>${s.tp}</span><span class="pill ${s.status==="SL touché"?"off":""}">${s.status}</span></div>`).join("");
-document.getElementById("y").textContent = new Date().getFullYear();
+// ---------- Réglages ----------
+const CRYPTO=["BTCUSDT","ETHUSDT","SOLUSDT","PAXGUSDT"]; // PAXG = proxy de l'or
+const FOREX=["EUR/USD","GBP/USD","USD/JPY","XAU/USD"];   // nécessite une clé Twelve Data gratuite
+const TD={"5m":"5min","15m":"15min","1h":"1h","4h":"4h"};
+const REFRESH_MS=60000, SL_ATR=1.5, TP_ATR=3; // risque/gain 1:2
+
+const $=s=>document.querySelector(s);
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+let hist=load("hist",[]); $("#key").value=load("key",""); $("#tf").value=load("tf","15m");
+
+// ---------- Données ----------
+async function candles(sym,tf){
+  if(sym.includes("/")){
+    const key=$("#key").value.trim(); if(!key) throw new Error("clé Twelve Data requise");
+    const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${TD[tf]}&outputsize=150&apikey=${key}`);
+    const j=await r.json(); if(!j.values) throw new Error(j.message||"erreur API");
+    return j.values.reverse().map(v=>({t:Date.parse(v.datetime.replace(" ","T")+"Z"),o:+v.open,h:+v.high,l:+v.low,c:+v.close}));
+  }
+  const r=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}&interval=${tf}&limit=150`);
+  if(!r.ok) throw new Error("erreur Binance "+r.status);
+  return (await r.json()).map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]}));
+}
+
+// ---------- Indicateurs ----------
+function ema(a,n){const k=2/(n+1);let e=a[0];return a.map((v,i)=>i?(e=v*k+e*(1-k)):e)}
+function rsi(c,n=14){const o=Array(c.length).fill(50);let g=0,l=0;
+  for(let i=1;i<c.length;i++){const d=c[i]-c[i-1];
+    if(i<=n){g+=Math.max(d,0)/n;l+=Math.max(-d,0)/n}else{g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n}
+    if(i>=n)o[i]=l===0?100:100-100/(1+g/l)}return o}
+function atr(cs,n=14){let a=0;return cs.map((x,i)=>{const tr=i?Math.max(x.h-x.l,Math.abs(x.h-cs[i-1].c),Math.abs(x.l-cs[i-1].c)):x.h-x.l;a=i?(a*(n-1)+tr)/n:tr;return a})}
+
+function analyze(cs){
+  const c=cs.map(x=>x.c),e9=ema(c,9),e21=ema(c,21),e50=ema(c,50),r=rsi(c),a=atr(cs);
+  const n=cs.length,i=n-2; // dernière bougie fermée
+  let sig=null;
+  for(let k=0;k<3&&!sig;k++){const j=i-k;
+    const up=e9[j-1]<=e21[j-1]&&e9[j]>e21[j], dn=e9[j-1]>=e21[j-1]&&e9[j]<e21[j];
+    if(up&&c[i]>e50[i]&&r[i]>40&&r[i]<68) sig={side:"BUY",ct:cs[j].t};
+    if(dn&&c[i]<e50[i]&&r[i]<60&&r[i]>32) sig={side:"SELL",ct:cs[j].t};}
+  const entry=cs[n-1].c;
+  if(sig){const d=a[i];sig.entry=entry;sig.sl=sig.side==="BUY"?entry-SL_ATR*d:entry+SL_ATR*d;sig.tp=sig.side==="BUY"?entry+TP_ATR*d:entry-TP_ATR*d}
+  return {price:entry,trend:e9[i]>e21[i]&&c[i]>e50[i]?"Haussière":e9[i]<e21[i]&&c[i]<e50[i]?"Baissière":"Neutre",rsi:r[i],sig};
+}
+
+// ---------- Suivi des signaux ----------
+function resolve(sym,cs){
+  hist.filter(s=>s.sym===sym&&!s.res).forEach(s=>{
+    for(const x of cs.filter(x=>x.t>s.t)){
+      const buy=s.side==="BUY",hitSL=buy?x.l<=s.sl:x.h>=s.sl,hitTP=buy?x.h>=s.tp:x.l<=s.tp;
+      if(hitSL){s.res="SL";s.r=-1;break}   // prudent : si SL et TP dans la même bougie, on compte SL
+      if(hitTP){s.res="TP";s.r=TP_ATR/SL_ATR;break}
+    }});
+}
+
+// ---------- Affichage ----------
+const fmt=p=>p>100?p.toFixed(2):p>10?p.toFixed(3):p.toFixed(5);
+const tm=t=>new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+function render(rows){
+  $("#mk").innerHTML=rows.map(r=>r.err?`<tr><td>${r.sym}</td><td colspan=4 class=mut>${r.err}</td></tr>`:
+    `<tr><td><b>${r.sym}</b></td><td>${fmt(r.price)}</td><td>${r.trend}</td><td>${r.rsi.toFixed(0)}</td><td>${r.sig?`<span class="${r.sig.side.toLowerCase()}">${r.sig.side==="BUY"?"ACHETER":"VENDRE"}</span>`:'<span class=mut>Attendre</span>'}</td></tr>`).join("");
+  const op=hist.filter(s=>!s.res),cl=hist.filter(s=>s.res);
+  $("#open").innerHTML=op.map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td>${s.tf}</td></tr>`).join("")||`<tr><td colspan=7 class=mut>Aucun signal ouvert.</td></tr>`;
+  $("#hist").innerHTML=cl.slice().reverse().map(s=>`<tr><td>${tm(s.t)}</td><td>${s.sym}</td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td><span class="pill ${s.res==="SL"?"l":""}">${s.res==="TP"?"Gagné":"Perdu"}</span></td><td>${s.r>0?"+":""}${s.r}</td></tr>`).join("")||`<tr><td colspan=6 class=mut>Aucun signal clôturé pour l’instant.</td></tr>`;
+  const w=cl.filter(s=>s.res==="TP").length,R=cl.reduce((a,s)=>a+s.r,0);
+  $("#stats").innerHTML=[["Signaux ouverts",op.length],["Clôturés",cl.length],["Taux de réussite",cl.length?Math.round(w/cl.length*100)+"%":"–"],["Total (en R)",(R>0?"+":"")+R.toFixed(1)]].map(([l,v])=>`<div class=card><b>${v}</b><span>${l}</span></div>`).join("");
+}
+
+// ---------- Boucle ----------
+async function scan(){
+  const tf=$("#tf").value; save("tf",tf); save("key",$("#key").value.trim());
+  $("#status").textContent="Scan en cours…";
+  const syms=[...CRYPTO,...($("#key").value.trim()?FOREX:[])];
+  const rows=await Promise.all(syms.map(async sym=>{
+    try{const cs=await candles(sym,tf);resolve(sym,cs);const a=analyze(cs);
+      if(a.sig&&!hist.some(h=>h.sym===sym&&h.tf===tf&&h.ct===a.sig.ct)){
+        hist.push({sym,tf,t:Date.now(),...a.sig});
+        if(Notification.permission==="granted") new Notification(`${a.sig.side} ${sym}`,{body:`Entrée ${fmt(a.sig.entry)} · SL ${fmt(a.sig.sl)} · TP ${fmt(a.sig.tp)}`});}
+      return {sym,...a};
+    }catch(e){return {sym,err:e.message}}}));
+  save("hist",hist.slice(-500)); render(rows);
+  $("#status").textContent="Dernier scan : "+new Date().toLocaleTimeString("fr-FR")+" · actualisation auto toutes les 60 s";
+}
+$("#go").onclick=scan; $("#tf").onchange=scan;
+$("#notif").onclick=()=>Notification.requestPermission().then(p=>$("#notif").textContent=p==="granted"?"🔔 Alertes activées":"🔕 Refusées");
+scan(); setInterval(scan,REFRESH_MS);
 </script>
 </body>
 </html>
