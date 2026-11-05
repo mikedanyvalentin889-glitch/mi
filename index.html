@@ -34,6 +34,9 @@ small{color:var(--muted)}
   <div class="ctl">
     <select id="tf" aria-label="Unité de temps"><option>5m</option><option selected>15m</option><option>1h</option><option>4h</option></select>
     <input id="key" placeholder="Clé Twelve Data (forex, optionnel)" size="28">
+    <input id="tgt" type="password" placeholder="Token Telegram" size="18" autocomplete="off">
+    <input id="tgc" placeholder="Chat ID" size="10" autocomplete="off">
+    <button id="tgtest">Tester Telegram</button>
     <button id="notif">🔔 Alertes</button>
     <button class="p" id="go">Scanner</button>
   </div>
@@ -50,6 +53,9 @@ small{color:var(--muted)}
 <h2>Historique</h2>
 <div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>Résultat</th><th>R</th></tr></thead><tbody id="hist"></tbody></table></div>
 
+<h2>Signaux 24/7 (envoyés aussi sur Telegram)</h2>
+<div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>SL</th><th>TP</th><th>Statut</th></tr></thead><tbody id="srv"><tr><td colspan=7 class=mut>Chargement…</td></tr></tbody></table></div>
+
 <p style="margin-top:28px"><small>Outil d’aide à la décision, pas un conseil financier. Aucun signal ne garantit un gain. Les résultats ci-dessus sont ceux de cette application, calculés dans ton navigateur. Teste en démo avant de risquer de l’argent réel.</small></p>
 
 <script>
@@ -62,15 +68,30 @@ const REFRESH_MS=60000, SL_ATR=1.5, TP_ATR=3; // risque/gain 1:2
 const $=s=>document.querySelector(s);
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+let FC=load("fc",{});
 let hist=load("hist",[]); $("#key").value=load("key",""); $("#tf").value=load("tf","15m");
 
+// ---------- Alerte sonore ----------
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(a.currentTime+.4)}catch{}}
+// ---------- Telegram (token gardé dans ton navigateur uniquement) ----------
+$("#tgt").value=load("tgt",""); $("#tgc").value=load("tgc","");
+async function tgSend(text){
+  const t=$("#tgt").value.trim(),c=$("#tgc").value.trim(); save("tgt",t); save("tgc",c);
+  if(!t||!c) return "Renseigne le token et le chat ID.";
+  try{const r=await fetch(`https://api.telegram.org/bot${t}/sendMessage`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({chat_id:c,text})});
+    const j=await r.json(); return j.ok?"Message envoyé ✅":("Erreur Telegram : "+(j.description||r.status));
+  }catch{return "Impossible de joindre Telegram (réseau)."}
+}
+$("#tgtest").onclick=async()=>{$("#status").textContent=await tgSend("✅ Mon Scanner est connecté à Telegram.")};
 // ---------- Données ----------
 async function candles(sym,tf){
   if(sym.includes("/")){
     const key=$("#key").value.trim(); if(!key) throw new Error("clé Twelve Data requise");
+    const ck=sym+tf; if(FC[ck]&&Date.now()-FC[ck].at<1800000) return FC[ck].cs; // cache 30 min : limite gratuite = 800 appels/jour
     const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${TD[tf]}&outputsize=150&apikey=${key}`);
     const j=await r.json(); if(!j.values) throw new Error(j.message||"erreur API");
-    return j.values.reverse().map(v=>({t:Date.parse(v.datetime.replace(" ","T")+"Z"),o:+v.open,h:+v.high,l:+v.low,c:+v.close}));
+    const cs=j.values.reverse().map(v=>({t:Date.parse(v.datetime.replace(" ","T")+"Z"),o:+v.open,h:+v.high,l:+v.low,c:+v.close}));
+    FC[ck]={at:Date.now(),cs}; save("fc",FC); return cs;
   }
   const r=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}&interval=${tf}&limit=150`);
   if(!r.ok) throw new Error("erreur Binance "+r.status);
@@ -129,16 +150,22 @@ async function scan(){
   const rows=await Promise.all(syms.map(async sym=>{
     try{const cs=await candles(sym,tf);resolve(sym,cs);const a=analyze(cs);
       if(a.sig&&!hist.some(h=>h.sym===sym&&h.tf===tf&&h.ct===a.sig.ct)){
-        hist.push({sym,tf,t:Date.now(),...a.sig});
+        hist.push({sym,tf,t:Date.now(),...a.sig}); beep(); document.title="🔔 "+a.sig.side+" "+sym;
+        tgSend(`${a.sig.side==="BUY"?"🟢 ACHETER":"🔴 VENDRE"} ${sym} (${tf})\nEntrée : ${fmt(a.sig.entry)}\nSL : ${fmt(a.sig.sl)}\nTP : ${fmt(a.sig.tp)}`);
         if(Notification.permission==="granted") new Notification(`${a.sig.side} ${sym}`,{body:`Entrée ${fmt(a.sig.entry)} · SL ${fmt(a.sig.sl)} · TP ${fmt(a.sig.tp)}`});}
       return {sym,...a};
     }catch(e){return {sym,err:e.message}}}));
   save("hist",hist.slice(-500)); render(rows);
   $("#status").textContent="Dernier scan : "+new Date().toLocaleTimeString("fr-FR")+" · actualisation auto toutes les 60 s";
 }
+async function loadServer(){
+  try{const r=await fetch("signals.json?"+Date.now()); if(!r.ok) throw 0; const d=await r.json();
+    $("#srv").innerHTML=d.signals.slice().reverse().slice(0,50).map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td><span class="pill ${s.res==="SL"?"l":s.res?"":"o"}">${s.res==="TP"?"Gagné":s.res==="SL"?"Perdu":"Ouvert"}</span></td></tr>`).join("")||`<tr><td colspan=7 class=mut>Aucun signal pour l’instant.</td></tr>`;
+  }catch{$("#srv").innerHTML=`<tr><td colspan=7 class=mut>Disponible une fois le site en ligne sur GitHub Pages avec le scanner 24/7 activé.</td></tr>`}
+}
 $("#go").onclick=scan; $("#tf").onchange=scan;
 $("#notif").onclick=()=>Notification.requestPermission().then(p=>$("#notif").textContent=p==="granted"?"🔔 Alertes activées":"🔕 Refusées");
-scan(); setInterval(scan,REFRESH_MS);
+scan(); loadServer(); setInterval(scan,REFRESH_MS); setInterval(loadServer,REFRESH_MS*5);
 </script>
 </body>
 </html>
