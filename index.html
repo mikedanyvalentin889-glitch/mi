@@ -45,7 +45,7 @@ small{color:var(--muted)}
 <div class="cards" id="stats"></div>
 
 <h2>Marché en direct</h2>
-<div class="tw"><table><thead><tr><th>Actif</th><th>Prix</th><th>Tendance</th><th>RSI</th><th>Verdict</th></tr></thead><tbody id="mk"></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Actif</th><th>Prix</th><th>Tendance</th><th>EMA 9</th><th>EMA 21</th><th>EMA 50</th><th>RSI</th><th>Dernière bougie</th><th>Verdict</th></tr></thead><tbody id="mk"></tbody></table></div>
 
 <h2>Signaux ouverts</h2>
 <div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>SL</th><th>TP</th><th>UT</th></tr></thead><tbody id="open"></tbody></table></div>
@@ -121,7 +121,7 @@ function analyze(cs){
     if(dnT&&r[j-1]>55&&r[j]<=55) sig={side:"SELL",ct:cs[j].t};}
   const entry=cs[n-1].c;
   if(sig){const d=a[i];sig.entry=entry;sig.sl=sig.side==="BUY"?entry-SL_ATR*d:entry+SL_ATR*d;sig.tp=sig.side==="BUY"?entry+TP_ATR*d:entry-TP_ATR*d}
-  return {price:entry,trend:e9[i]>e21[i]&&c[i]>e50[i]?"Haussière":e9[i]<e21[i]&&c[i]<e50[i]?"Baissière":"Neutre",rsi:r[i],sig};
+  return {e9:e9[i],e21:e21[i],e50:e50[i],last:cs[n-1].t,n,price:entry,trend:e9[i]>e21[i]&&c[i]>e50[i]?"Haussière":e9[i]<e21[i]&&c[i]<e50[i]?"Baissière":"Neutre",rsi:r[i],sig};
 }
 
 // ---------- Suivi des signaux ----------
@@ -136,10 +136,12 @@ function resolve(sym,cs){
 
 // ---------- Affichage ----------
 const fmt=p=>p>100?p.toFixed(2):p>10?p.toFixed(3):p.toFixed(5);
+const ago=t=>{const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?"à l’instant":m<60?m+" min":Math.round(m/60)+" h"};
+const TFMS={"5m":3e5,"15m":9e5,"1h":36e5,"4h":144e5};
 const tm=t=>new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 function render(rows){
-  $("#mk").innerHTML=rows.map(r=>r.err?`<tr><td>${r.sym}</td><td colspan=4 class=mut>${r.err}</td></tr>`:
-    `<tr><td><b>${r.sym}</b></td><td>${fmt(r.price)}</td><td>${r.trend}</td><td>${r.rsi.toFixed(0)}</td><td>${r.sig?`<span class="${r.sig.side.toLowerCase()}">${r.sig.side==="BUY"?"ACHETER":"VENDRE"}</span>`:`<span class=mut>${r.trend==='Haussière'?'Biais achat · attendre l’entrée':r.trend==='Baissière'?'Biais vente · attendre l’entrée':'Neutre · attendre'}</span>`}</td></tr>`).join("");
+  $("#mk").innerHTML=rows.map(r=>r.err?`<tr><td>${r.sym}</td><td colspan=8 class=mut>⚠ Données indisponibles : ${r.err}</td></tr>`:
+    `<tr><td><b>${r.sym}</b></td><td>${fmt(r.price)}</td><td>${r.trend}</td><td>${fmt(r.e9)}</td><td>${fmt(r.e21)}</td><td>${fmt(r.e50)}</td><td>${r.rsi.toFixed(0)}</td><td class=mut>${ago(r.last)}</td><td>${r.sig?`<span class="${r.sig.side.toLowerCase()}">${r.sig.side==="BUY"?"ACHETER":"VENDRE"}</span>`:`<span class=mut>${r.trend==='Haussière'?'Biais achat · attendre l’entrée':r.trend==='Baissière'?'Biais vente · attendre l’entrée':'Neutre · attendre'}</span>`}</td></tr>`).join("");
   const op=hist.filter(s=>!s.res),cl=hist.filter(s=>s.res);
   $("#open").innerHTML=op.map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td>${s.tf}</td></tr>`).join("")||`<tr><td colspan=7 class=mut>Aucun signal ouvert.</td></tr>`;
   $("#hist").innerHTML=cl.slice().reverse().map(s=>`<tr><td>${tm(s.t)}</td><td>${s.sym}</td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td><span class="pill ${s.res==="SL"?"l":""}">${s.res==="TP"?"Gagné":"Perdu"}</span></td><td>${s.r>0?"+":""}${s.r}</td></tr>`).join("")||`<tr><td colspan=6 class=mut>Aucun signal clôturé pour l’instant.</td></tr>`;
@@ -161,7 +163,8 @@ async function scan(){
       return {sym,...a};
     }catch(e){return {sym,err:e.message}}}));
   save("hist",hist.slice(-500)); render(rows);
-  $("#status").textContent="Dernier scan : "+new Date().toLocaleTimeString("fr-FR")+" · actualisation auto toutes les 60 s";
+  const ok=rows.filter(r=>!r.err),stale=ok.some(r=>Date.now()-r.last>3*TFMS[tf]);
+  $("#status").textContent=`${ok.length}/${rows.length} actifs reçus en direct (Binance${$("#key").value.trim()?" + Twelve Data":""}) · scan ${new Date().toLocaleTimeString("fr-FR")} · auto 60 s`+(stale?" · ⚠ données anciennes (marché fermé ?)":"")+(ok.length===0?" · ❌ AUCUNE donnée reçue : vérifie ta connexion":"");
 }
 async function loadServer(){
   try{const r=await fetch("signals.json?"+Date.now()); if(!r.ok) throw 0; const d=await r.json();
