@@ -114,6 +114,11 @@ function analyze(cs){
     const up=e9[j-1]<=e21[j-1]&&e9[j]>e21[j], dn=e9[j-1]>=e21[j-1]&&e9[j]<e21[j];
     if(up&&c[i]>e50[i]&&r[i]>40&&r[i]<68) sig={side:"BUY",ct:cs[j].t};
     if(dn&&c[i]<e50[i]&&r[i]<60&&r[i]>32) sig={side:"SELL",ct:cs[j].t};}
+  // 2e type de signal : reprise dans le sens de la tendance (le RSI repart après un repli)
+  const upT=e9[i]>e21[i]&&e21[i]>e50[i], dnT=e9[i]<e21[i]&&e21[i]<e50[i];
+  for(let k=0;k<2&&!sig;k++){const j=i-k;
+    if(upT&&r[j-1]<45&&r[j]>=45) sig={side:"BUY",ct:cs[j].t};
+    if(dnT&&r[j-1]>55&&r[j]<=55) sig={side:"SELL",ct:cs[j].t};}
   const entry=cs[n-1].c;
   if(sig){const d=a[i];sig.entry=entry;sig.sl=sig.side==="BUY"?entry-SL_ATR*d:entry+SL_ATR*d;sig.tp=sig.side==="BUY"?entry+TP_ATR*d:entry-TP_ATR*d}
   return {price:entry,trend:e9[i]>e21[i]&&c[i]>e50[i]?"Haussière":e9[i]<e21[i]&&c[i]<e50[i]?"Baissière":"Neutre",rsi:r[i],sig};
@@ -134,7 +139,7 @@ const fmt=p=>p>100?p.toFixed(2):p>10?p.toFixed(3):p.toFixed(5);
 const tm=t=>new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 function render(rows){
   $("#mk").innerHTML=rows.map(r=>r.err?`<tr><td>${r.sym}</td><td colspan=4 class=mut>${r.err}</td></tr>`:
-    `<tr><td><b>${r.sym}</b></td><td>${fmt(r.price)}</td><td>${r.trend}</td><td>${r.rsi.toFixed(0)}</td><td>${r.sig?`<span class="${r.sig.side.toLowerCase()}">${r.sig.side==="BUY"?"ACHETER":"VENDRE"}</span>`:'<span class=mut>Attendre</span>'}</td></tr>`).join("");
+    `<tr><td><b>${r.sym}</b></td><td>${fmt(r.price)}</td><td>${r.trend}</td><td>${r.rsi.toFixed(0)}</td><td>${r.sig?`<span class="${r.sig.side.toLowerCase()}">${r.sig.side==="BUY"?"ACHETER":"VENDRE"}</span>`:`<span class=mut>${r.trend==='Haussière'?'Biais achat · attendre l’entrée':r.trend==='Baissière'?'Biais vente · attendre l’entrée':'Neutre · attendre'}</span>`}</td></tr>`).join("");
   const op=hist.filter(s=>!s.res),cl=hist.filter(s=>s.res);
   $("#open").innerHTML=op.map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td>${s.tf}</td></tr>`).join("")||`<tr><td colspan=7 class=mut>Aucun signal ouvert.</td></tr>`;
   $("#hist").innerHTML=cl.slice().reverse().map(s=>`<tr><td>${tm(s.t)}</td><td>${s.sym}</td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td><span class="pill ${s.res==="SL"?"l":""}">${s.res==="TP"?"Gagné":"Perdu"}</span></td><td>${s.r>0?"+":""}${s.r}</td></tr>`).join("")||`<tr><td colspan=6 class=mut>Aucun signal clôturé pour l’instant.</td></tr>`;
