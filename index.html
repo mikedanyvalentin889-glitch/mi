@@ -42,13 +42,23 @@ small{color:var(--muted)}
   </div>
 </div>
 
+<div class="ctl" style="margin-bottom:14px">
+  <label>Capital $ <input id="cap" type="number" value="100" style="width:90px"></label>
+  <label>Risque par trade % <input id="risk" type="number" value="1" step="0.5" style="width:70px"></label>
+  <label>Frais/spread % <input id="cost" type="number" value="0.1" step="0.05" style="width:70px"></label>
+  <label><input type="checkbox" id="adv" checked> Filtres avancés (ADX + EMA 200)</label>
+</div>
 <div class="cards" id="stats"></div>
+
+<h2>Graphique <select id="csym" aria-label="Actif"></select></h2>
+<div class="card" style="padding:8px"><canvas id="ch" style="width:100%;height:380px;display:block"></canvas></div>
+<small>Bougies réelles · EMA 9 (vert) · EMA 21 (orange) · EMA 50 (bleu) · ▲ achat / ▼ vente · lignes pointillées = SL / TP des signaux ouverts.</small>
 
 <h2>Marché en direct</h2>
 <div class="tw"><table><thead><tr><th>Actif</th><th>Prix</th><th>Tendance</th><th>EMA 9</th><th>EMA 21</th><th>EMA 50</th><th>RSI</th><th>Dernière bougie</th><th>Verdict</th></tr></thead><tbody id="mk"></tbody></table></div>
 
 <h2>Signaux ouverts</h2>
-<div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>SL</th><th>TP</th><th>UT</th></tr></thead><tbody id="open"></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>SL</th><th>TP</th><th>UT</th><th>Taille (risque fixe)</th></tr></thead><tbody id="open"></tbody></table></div>
 
 <h2>Historique</h2>
 <div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>Résultat</th><th>R</th></tr></thead><tbody id="hist"></tbody></table></div>
@@ -56,8 +66,13 @@ small{color:var(--muted)}
 <h2>Signaux 24/7 (envoyés aussi sur Telegram)</h2>
 <div class="tw"><table><thead><tr><th>Heure</th><th>Actif</th><th>Sens</th><th>Entrée</th><th>SL</th><th>TP</th><th>Statut</th></tr></thead><tbody id="srv"><tr><td colspan=7 class=mut>Chargement…</td></tr></tbody></table></div>
 
+<h2>Backtest : la stratégie testée sur l’historique</h2>
+<div class="ctl" style="margin-bottom:10px"><button class="p" id="btb">Lancer le backtest (tous les actifs)</button><small id="btst"></small></div>
+<div class="tw"><table><thead><tr><th>Actif</th><th>Trades</th><th>Réussite</th><th>Total (R)</th><th>R moyen</th><th>Facteur de profit</th><th>Perte max (R)</th><th>Période</th></tr></thead><tbody id="bt"><tr><td colspan=8 class=mut>Clique sur « Lancer le backtest ». Les marqueurs apparaissent ensuite sur le graphique.</td></tr></tbody></table></div>
+
 <p style="margin-top:28px"><small>Outil d’aide à la décision, pas un conseil financier. Aucun signal ne garantit un gain. Les résultats ci-dessus sont ceux de cette application, calculés dans ton navigateur. Teste en démo avant de risquer de l’argent réel.</small></p>
 
+<script src="strategy.js"></script>
 <script>
 // ---------- Réglages ----------
 const CRYPTO=["BTCUSDT","ETHUSDT","SOLUSDT","PAXGUSDT"]; // PAXG = proxy de l'or
@@ -84,46 +99,25 @@ async function tgSend(text){
 }
 $("#tgtest").onclick=async()=>{$("#status").textContent=await tgSend("✅ Mon Scanner est connecté à Telegram.")};
 // ---------- Données ----------
-async function candles(sym,tf){
+async function candles(sym,tf,lim=300){
   if(sym.includes("/")){
     const key=$("#key").value.trim(); if(!key) throw new Error("clé Twelve Data requise");
-    const ck=sym+tf; if(FC[ck]&&Date.now()-FC[ck].at<1800000) return FC[ck].cs; // cache 30 min : limite gratuite = 800 appels/jour
-    const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${TD[tf]}&outputsize=150&apikey=${key}`);
+    const ck=sym+tf+lim; if(FC[ck]&&Date.now()-FC[ck].at<1800000) return FC[ck].cs; // cache 30 min : limite gratuite = 800 appels/jour
+    const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${TD[tf]}&outputsize=${lim}&apikey=${key}`);
     const j=await r.json(); if(!j.values) throw new Error(j.message||"erreur API");
     const cs=j.values.reverse().map(v=>({t:Date.parse(v.datetime.replace(" ","T")+"Z"),o:+v.open,h:+v.high,l:+v.low,c:+v.close}));
     FC[ck]={at:Date.now(),cs}; save("fc",FC); return cs;
   }
-  const r=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}&interval=${tf}&limit=150`);
+  const r=await fetch(`https://data-api.binance.vision/api/v3/klines?symbol=${sym}&interval=${tf}&limit=${lim}`);
   if(!r.ok) throw new Error("erreur Binance "+r.status);
   return (await r.json()).map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4]}));
 }
 
-// ---------- Indicateurs ----------
-function ema(a,n){const k=2/(n+1);let e=a[0];return a.map((v,i)=>i?(e=v*k+e*(1-k)):e)}
-function rsi(c,n=14){const o=Array(c.length).fill(50);let g=0,l=0;
-  for(let i=1;i<c.length;i++){const d=c[i]-c[i-1];
-    if(i<=n){g+=Math.max(d,0)/n;l+=Math.max(-d,0)/n}else{g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n}
-    if(i>=n)o[i]=l===0?100:100-100/(1+g/l)}return o}
-function atr(cs,n=14){let a=0;return cs.map((x,i)=>{const tr=i?Math.max(x.h-x.l,Math.abs(x.h-cs[i-1].c),Math.abs(x.l-cs[i-1].c)):x.h-x.l;a=i?(a*(n-1)+tr)/n:tr;return a})}
-
-function analyze(cs){
-  const c=cs.map(x=>x.c),e9=ema(c,9),e21=ema(c,21),e50=ema(c,50),r=rsi(c),a=atr(cs);
-  const n=cs.length,i=n-2; // dernière bougie fermée
-  let sig=null;
-  for(let k=0;k<3&&!sig;k++){const j=i-k;
-    const up=e9[j-1]<=e21[j-1]&&e9[j]>e21[j], dn=e9[j-1]>=e21[j-1]&&e9[j]<e21[j];
-    if(up&&c[i]>e50[i]&&r[i]>40&&r[i]<68) sig={side:"BUY",ct:cs[j].t};
-    if(dn&&c[i]<e50[i]&&r[i]<60&&r[i]>32) sig={side:"SELL",ct:cs[j].t};}
-  // 2e type de signal : reprise dans le sens de la tendance (le RSI repart après un repli)
-  const upT=e9[i]>e21[i]&&e21[i]>e50[i], dnT=e9[i]<e21[i]&&e21[i]<e50[i];
-  for(let k=0;k<2&&!sig;k++){const j=i-k;
-    if(upT&&r[j-1]<45&&r[j]>=45) sig={side:"BUY",ct:cs[j].t};
-    if(dnT&&r[j-1]>55&&r[j]<=55) sig={side:"SELL",ct:cs[j].t};}
-  const entry=cs[n-1].c;
-  if(sig){const d=a[i];sig.entry=entry;sig.sl=sig.side==="BUY"?entry-SL_ATR*d:entry+SL_ATR*d;sig.tp=sig.side==="BUY"?entry+TP_ATR*d:entry-TP_ATR*d}
-  return {e9:e9[i],e21:e21[i],e50:e50[i],last:cs[n-1].t,n,price:entry,trend:e9[i]>e21[i]&&c[i]>e50[i]?"Haussière":e9[i]<e21[i]&&c[i]<e50[i]?"Baissière":"Neutre",rsi:r[i],sig};
-}
-
+// ---------- Analyse (stratégie dans strategy.js) ----------
+function analyze(cs){const I=Strat.indicators(cs),n=cs.length,i=n-2,{e9,e21,e50,r,c}=I;
+  return {I,cs,e9:e9[i],e21:e21[i],e50:e50[i],last:cs[n-1].t,n,price:c[n-1],rsi:r[i],
+    trend:e9[i]>e21[i]&&c[i]>e50[i]?"Haussière":e9[i]<e21[i]&&c[i]<e50[i]?"Baissière":"Neutre",
+    sig:Strat.liveSignal(I,$("#adv").checked)}}
 // ---------- Suivi des signaux ----------
 function resolve(sym,cs){
   hist.filter(s=>s.sym===sym&&!s.res).forEach(s=>{
@@ -143,7 +137,7 @@ function render(rows){
   $("#mk").innerHTML=rows.map(r=>r.err?`<tr><td>${r.sym}</td><td colspan=8 class=mut>⚠ Données indisponibles : ${r.err}</td></tr>`:
     `<tr><td><b>${r.sym}</b></td><td>${fmt(r.price)}</td><td>${r.trend}</td><td>${fmt(r.e9)}</td><td>${fmt(r.e21)}</td><td>${fmt(r.e50)}</td><td>${r.rsi.toFixed(0)}</td><td class=mut>${ago(r.last)}</td><td>${r.sig?`<span class="${r.sig.side.toLowerCase()}">${r.sig.side==="BUY"?"ACHETER":"VENDRE"}</span>`:`<span class=mut>${r.trend==='Haussière'?'Biais achat · attendre l’entrée':r.trend==='Baissière'?'Biais vente · attendre l’entrée':'Neutre · attendre'}</span>`}</td></tr>`).join("");
   const op=hist.filter(s=>!s.res),cl=hist.filter(s=>s.res);
-  $("#open").innerHTML=op.map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td>${s.tf}</td></tr>`).join("")||`<tr><td colspan=7 class=mut>Aucun signal ouvert.</td></tr>`;
+  $("#open").innerHTML=op.map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td>${s.tf}</td><td>${size(s)}</td></tr>`).join("")||`<tr><td colspan=8 class=mut>Aucun signal ouvert.</td></tr>`;
   $("#hist").innerHTML=cl.slice().reverse().map(s=>`<tr><td>${tm(s.t)}</td><td>${s.sym}</td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td><span class="pill ${s.res==="SL"?"l":""}">${s.res==="TP"?"Gagné":"Perdu"}</span></td><td>${s.r>0?"+":""}${s.r}</td></tr>`).join("")||`<tr><td colspan=6 class=mut>Aucun signal clôturé pour l’instant.</td></tr>`;
   const w=cl.filter(s=>s.res==="TP").length,R=cl.reduce((a,s)=>a+s.r,0);
   $("#stats").innerHTML=[["Signaux ouverts",op.length],["Clôturés",cl.length],["Taux de réussite",cl.length?Math.round(w/cl.length*100)+"%":"–"],["Total (en R)",(R>0?"+":"")+R.toFixed(1)]].map(([l,v])=>`<div class=card><b>${v}</b><span>${l}</span></div>`).join("");
@@ -155,7 +149,7 @@ async function scan(){
   $("#status").textContent="Scan en cours…";
   const syms=[...CRYPTO,...($("#key").value.trim()?FOREX:[])];
   const rows=await Promise.all(syms.map(async sym=>{
-    try{const cs=await candles(sym,tf);resolve(sym,cs);const a=analyze(cs);
+    try{const cs=await candles(sym,tf);resolve(sym,cs);const a=analyze(cs);DATA[sym]=a;
       if(a.sig&&!hist.some(h=>h.sym===sym&&h.tf===tf&&h.ct===a.sig.ct)){
         hist.push({sym,tf,t:Date.now(),...a.sig}); beep(); document.title="🔔 "+a.sig.side+" "+sym;
         tgSend(`${a.sig.side==="BUY"?"🟢 ACHETER":"🔴 VENDRE"} ${sym} (${tf})\nEntrée : ${fmt(a.sig.entry)}\nSL : ${fmt(a.sig.sl)}\nTP : ${fmt(a.sig.tp)}`);
@@ -163,9 +157,43 @@ async function scan(){
       return {sym,...a};
     }catch(e){return {sym,err:e.message}}}));
   save("hist",hist.slice(-500)); render(rows);
+  const se=$("#csym"); if(se.options.length!==syms.length) se.innerHTML=syms.map(x=>`<option>${x}</option>`).join("");
+  drawChart();
   const ok=rows.filter(r=>!r.err),stale=ok.some(r=>Date.now()-r.last>3*TFMS[tf]);
   $("#status").textContent=`${ok.length}/${rows.length} actifs reçus en direct (Binance${$("#key").value.trim()?" + Twelve Data":""}) · scan ${new Date().toLocaleTimeString("fr-FR")} · auto 60 s`+(stale?" · ⚠ données anciennes (marché fermé ?)":"")+(ok.length===0?" · ❌ AUCUNE donnée reçue : vérifie ta connexion":"");
 }
+// ---------- Graphique, backtest, taille de position ----------
+const DATA={},BT={};
+["cap","risk","cost"].forEach(id=>{$("#"+id).value=load(id,$("#"+id).value);$("#"+id).onchange=e=>save(id,e.target.value)});
+$("#adv").checked=load("adv",true); $("#adv").onchange=e=>{save("adv",e.target.checked);scan()};
+const size=s=>{const cap=+$("#cap").value,rk=+$("#risk").value,d=Math.abs(s.entry-s.sl);return d&&cap&&rk?(cap*rk/100/d).toPrecision(3)+" u":"–"};
+function drawChart(){
+  const sym=$("#csym").value,a=DATA[sym],cv=$("#ch"); if(!a) return;
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr;
+  const g=cv.getContext("2d"); g.scale(dpr,dpr);
+  const N=110,cs=a.cs.slice(-N),off=a.cs.length-cs.length,I=a.I;
+  const hi=Math.max(...cs.map(x=>x.h)),lo=Math.min(...cs.map(x=>x.l)),padR=66,padB=14,w=(W-padR)/N;
+  const Y=p=>(H-padB)*(1-(p-lo)/((hi-lo)||1)),X=k=>k*w+w/2;
+  g.font="11px Manrope,sans-serif"; g.lineWidth=1;
+  for(let k=0;k<=4;k++){const p=lo+(hi-lo)*k/4,y=Y(p);g.strokeStyle="#1c2622";g.beginPath();g.moveTo(0,y);g.lineTo(W-padR,y);g.stroke();g.fillStyle="#7e8b85";g.fillText(fmt(p),W-padR+6,y+4)}
+  cs.forEach((x,k)=>{g.strokeStyle=g.fillStyle=x.c>=x.o?"#3ddc97":"#ff6b6b";g.beginPath();g.moveTo(X(k),Y(x.h));g.lineTo(X(k),Y(x.l));g.stroke();g.fillRect(X(k)-w*.35,Math.min(Y(x.o),Y(x.c)),w*.7,Math.max(1,Math.abs(Y(x.o)-Y(x.c))))});
+  [[I.e9,"#9be15d"],[I.e21,"#ffb454"],[I.e50,"#6cb6ff"]].forEach(([arr,col])=>{g.strokeStyle=col;g.lineWidth=1.5;g.beginPath();cs.forEach((_,k)=>{const y=Y(arr[off+k]);k?g.lineTo(X(k),y):g.moveTo(X(k),y)});g.stroke()});
+  g.lineWidth=1;
+  const tf=$("#tf").value,mk=[...(BT[sym]||[]),...hist.filter(s=>s.sym===sym&&s.tf===tf)];
+  mk.forEach(m=>{const k=cs.findIndex((x,i)=>x.t<=m.t&&(i===cs.length-1||cs[i+1].t>m.t)); if(k<0||m.t<cs[0].t) return;
+    const buy=m.side==="BUY",x=X(k),y=Y(m.entry)+(buy?16:-16); g.fillStyle=buy?"#3ddc97":"#ff6b6b"; g.beginPath();
+    if(buy){g.moveTo(x,y-8);g.lineTo(x-6,y+4);g.lineTo(x+6,y+4)}else{g.moveTo(x,y+8);g.lineTo(x-6,y-4);g.lineTo(x+6,y-4)} g.fill()});
+  hist.filter(s=>s.sym===sym&&!s.res).forEach(s=>[[s.sl,"#ff6b6b"],[s.tp,"#3ddc97"]].forEach(([p,col])=>{if(p<lo||p>hi) return;g.strokeStyle=col;g.setLineDash([5,4]);g.beginPath();g.moveTo(0,Y(p));g.lineTo(W-padR,Y(p));g.stroke();g.setLineDash([])}));
+}
+$("#csym").onchange=drawChart; window.onresize=drawChart;
+$("#btb").onclick=async()=>{
+  const tf=$("#tf").value,adv=$("#adv").checked,cost=+$("#cost").value,syms=[...CRYPTO,...($("#key").value.trim()?FOREX:[])];
+  $("#btst").textContent="Calcul en cours…";
+  const rows=await Promise.all(syms.map(async sym=>{try{const cs=await candles(sym,tf,1000),t=Strat.backtest(cs,{adv,costPct:cost});BT[sym]=t.trades;return {sym,...t.stats,days:(cs[cs.length-1].t-cs[0].t)/864e5}}catch(e){return {sym,err:e.message}}}));
+  $("#bt").innerHTML=rows.map(r=>r.err?`<tr><td>${r.sym}</td><td colspan=7 class=mut>⚠ ${r.err}</td></tr>`:`<tr><td><b>${r.sym}</b></td><td>${r.n}${r.n<30?" <small>(échantillon faible)</small>":""}</td><td>${r.n?Math.round(r.win*100)+"%":"–"}</td><td class="${r.total>=0?"buy":"sell"}">${r.total>0?"+":""}${r.total.toFixed(1)}</td><td>${r.avg.toFixed(2)}</td><td>${isFinite(r.pf)?r.pf.toFixed(2):"–"}</td><td>${r.dd.toFixed(1)}</td><td>${r.days.toFixed(0)} j</td></tr>`).join("");
+  $("#btst").textContent="Frais inclus : "+cost+" % par trade. Le passé ne garantit pas le futur : un échantillon faible (<30 trades) ne prouve rien.";
+  drawChart();
+};
 async function loadServer(){
   try{const r=await fetch("signals.json?"+Date.now()); if(!r.ok) throw 0; const d=await r.json();
     $("#srv").innerHTML=d.signals.slice().reverse().slice(0,50).map(s=>`<tr><td>${tm(s.t)}</td><td><b>${s.sym}</b></td><td class="${s.side.toLowerCase()}">${s.side}</td><td>${fmt(s.entry)}</td><td>${fmt(s.sl)}</td><td>${fmt(s.tp)}</td><td><span class="pill ${s.res==="SL"?"l":s.res?"":"o"}">${s.res==="TP"?"Gagné":s.res==="SL"?"Perdu":"Ouvert"}</span></td></tr>`).join("")||`<tr><td colspan=7 class=mut>Aucun signal pour l’instant.</td></tr>`;
