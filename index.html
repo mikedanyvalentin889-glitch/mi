@@ -7,16 +7,16 @@
 <meta name="theme-color" content="#0c0b13">
 <title>WING — Social Co-Pilot</title>
 <style>
-:root{--bg:#0c0b13;--panel:#151421;--line:#302d43;--text:#f7f5ff;--muted:#a5a0b8;--pink:#ff5c9a;--purple:#9b7cff;--green:#65e6b0}
+:root{--bg:#0c0b13;--panel:#151421;--panel2:#1d1b2c;--line:#302d43;--text:#f7f5ff;--muted:#a5a0b8;--pink:#ff5c9a;--purple:#9b7cff;--green:#65e6b0}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 90% 0,#32172f 0,transparent 34%),radial-gradient(ellipse at 0 100%,#1b2040 0,transparent 40%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}
-button,input,textarea,select{font:inherit}button{cursor:pointer}.wrap{max-width:1100px;margin:auto;padding:22px 16px 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.logo{height:44px;width:44px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,var(--pink),var(--purple));font-weight:950;font-size:23px}.brand h1{font-size:21px;letter-spacing:3px;margin:0}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.8px}.pill{border:1px solid #65e6b044;color:var(--green);padding:6px 10px;border-radius:30px;font-size:11px}
+button,input,textarea,select{font:inherit}button{cursor:pointer}.wrap{max-width:1100px;margin:auto;padding:22px 16px 50px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.logo{height:44px;width:44px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,var(--pink),var(--purple));font-weight:950;font-size:23px;box-shadow:0 8px 25px #ff5c9a40}.brand h1{font-size:21px;letter-spacing:3px;margin:0}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.8px}.pill{border:1px solid #65e6b044;color:var(--green);padding:6px 10px;border-radius:30px;font-size:11px}
 .hero{margin:22px 0}.eyebrow{color:var(--pink);font-size:11px;letter-spacing:2px;font-weight:800}.hero h2{font-size:clamp(30px,6vw,48px);line-height:1.05;margin:8px 0}.gradient{background:linear-gradient(90deg,#ff80b2,#b09aff);background-clip:text;color:transparent}.hero p{color:var(--muted);max-width:650px;margin:0}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}.panel{background:#151421ed;border:1px solid var(--line);border-radius:20px;padding:17px;box-shadow:0 18px 55px #0004}.panel h3{font-size:14px;margin:0 0 12px}.fieldlabel{display:block;font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1.2px;margin:14px 0 7px}
 input[type=password],input[type=text],textarea,select{width:100%;background:#0e0d17;border:1px solid var(--line);border-radius:12px;color:var(--text);padding:11px 12px;outline:none}textarea{min-height:100px;resize:vertical}input:focus,textarea:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #9b7cff20}
 .row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.btn{border:1px solid var(--line);background:#242136;color:var(--text);border-radius:11px;padding:10px 13px}.btn.primary{border:0;background:linear-gradient(100deg,var(--pink),#976dff);font-weight:850}.btn.small{font-size:12px;padding:8px 10px}.btn:disabled{opacity:.5;cursor:not-allowed}
 .keyrow input{flex:1}.keynote,.hint{font-size:11px;color:var(--muted);margin:7px 0 0}.moods{display:flex;flex-wrap:wrap;gap:7px}.mood{border:1px solid var(--line);background:#1d1b2c;color:#d9d5e8;border-radius:30px;padding:7px 10px;font-size:12px}.mood.active{border-color:var(--pink);background:#ff5c9a18;color:#ff9fc3}
-.upload{border:1px dashed #55506d;border-radius:13px;padding:13px;background:#100f1a}.upload input{font-size:12px;max-width:100%}.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.preview img{width:78px;height:78px;object-fit:cover;border-radius:9px;border:1px solid var(--line)}
-#chat{display:grid;gap:10px;margin-top:15px}.bubble{padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#100f1a;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.user{background:#211a30;border-color:#554071}.who{font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px}.suggestions{display:grid;gap:9px;margin-top:12px}.suggestion{background:#100f1a;border:1px solid var(--line);border-radius:13px;padding:12px}.suggestion p{white-space:pre-wrap;margin:0 0 9px}.suggestion .meta{color:var(--muted);font-size:10px;margin-bottom:6px}.actions{display:flex;gap:7px;flex-wrap:wrap}.status{font-size:12px;color:var(--muted);min-height:20px;margin-top:10px}.side p{font-size:13px;color:var(--muted)}.history-list{display:grid;gap:7px;max-height:380px;overflow:auto}.history-item{display:flex;gap:7px;align-items:stretch}.history-open{flex:1;text-align:left;min-width:0}.history-open strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.history-open small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.history-empty{font-size:12px;color:var(--muted);padding:10px;border:1px dashed var(--line);border-radius:10px}.tip{padding:10px;border-left:2px solid var(--purple);background:#9b7cff12;border-radius:0 10px 10px 0;font-size:12px;margin:10px 0}.danger{color:#ff9bad}.foot{text-align:center;color:#77738b;font-size:11px;margin-top:22px}
+.upload{border:1px dashed #55506d;border-radius:13px;padding:13px;background:#100f1a}.upload input{font-size:12px;max-width:100%}.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.preview img{width:78px;height:78px;object-fit:cover;border-radius:9px;border:1px solid var(--line)}.preview button{display:block;margin-top:3px}
+#chat{display:grid;gap:10px;margin-top:15px}.bubble{padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:#100f1a;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.user{background:#211a30;border-color:#554071}.who{font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px}.suggestions{display:grid;gap:9px;margin-top:12px}.suggestion{background:#100f1a;border:1px solid var(--line);border-radius:13px;padding:12px}.suggestion p{white-space:pre-wrap;margin:0 0 9px}.suggestion .meta{color:var(--muted);font-size:10px;margin-bottom:6px}.actions{display:flex;gap:7px;flex-wrap:wrap}.status{font-size:12px;color:var(--muted);min-height:20px;margin-top:10px}.side p{font-size:13px;color:var(--muted)}.history-list{display:grid;gap:7px;max-height:380px;overflow:auto}.history-item{display:flex;gap:7px;align-items:stretch}.history-open{flex:1;text-align:left;min-width:0}.history-open strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.history-open small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.history-empty{font-size:12px;color:var(--muted);padding:10px;border:1px dashed var(--line);border-radius:10px}.tip{padding:10px;border-left:2px solid var(--purple);background:#9b7cff12;border-radius:0 10px 10px 0;font-size:12px;margin:10px 0}.danger{color:#ff9bad}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.profile-grid .wide{grid-column:1/-1}.mini{font-size:11px;color:var(--muted)}.sectionline{height:1px;background:var(--line);margin:17px 0}.voice-on{border-color:var(--green)!important;color:var(--green)!important}.conversation-list{display:grid;gap:7px;max-height:240px;overflow:auto}.profile-card{padding:10px;border:1px solid var(--line);border-radius:12px;background:#100f1a}.reply-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.foot{text-align:center;color:#77738b;font-size:11px;margin-top:22px}
 @media(max-width:800px){.layout{grid-template-columns:1fr}.wrap{padding:16px 12px 35px}.panel{padding:14px}.top{margin-bottom:15px}}
 </style>
 </head>
@@ -24,16 +24,7 @@ input[type=password],input[type=text],textarea,select{width:100%;background:#0e0
 <div class="wrap">
 <header class="top">
  <div class="brand"><div class="logo">W</div><div><h1>WING</h1><small>YOUR SOCIAL CO-PILOT</small></div></div>
- <div class="row" style="gap:8px">
- <select id="language" aria-label="Language" style="width:auto;padding:8px">
- <option value="fr">🇫🇷 Français</option>
- <option value="en">🇺🇸 English</option>
- <option value="ht">🇭🇹 Kreyòl ayisyen</option>
- <option value="es">🇪🇸 Español</option>
- <option value="pt">🇧🇷 Português</option>
- </select>
- <div class="pill" id="connection">● CLÉ NON CONFIGURÉE</div>
- </div>
+ <div class="row" style="gap:8px"><select id="language" aria-label="Language" style="width:auto;padding:8px"><option value="fr">🇫🇷 Français</option><option value="en">🇺🇸 English</option><option value="ht">🇭🇹 Kreyòl ayisyen</option><option value="es">🇪🇸 Español</option><option value="pt">🇧🇷 Português</option></select><div class="pill" id="connection">● CLÉ NON CONFIGURÉE</div></div>
 </header>
 <section class="hero">
  <div class="eyebrow">SOCIAL INTELLIGENCE · GROQ POWERED</div>
@@ -44,47 +35,32 @@ input[type=password],input[type=text],textarea,select{width:100%;background:#0e0
 <main class="panel">
  <h3>✦ Configuration Groq</h3>
  <label class="fieldlabel" for="apiKey">TA CLÉ API GROQ</label>
- <div class="row keyrow">
- <input id="apiKey" type="password" placeholder="gsk_..." autocomplete="off">
- <button class="btn small" id="showKey">Voir</button>
- <button class="btn small" id="saveKey">Enregistrer</button>
- </div>
+ <div class="row keyrow"><input id="apiKey" type="password" placeholder="gsk_..." autocomplete="off"><button class="btn small" id="showKey">Voir</button><button class="btn small" id="saveKey">Enregistrer</button></div>
  <div class="keynote">La clé est conservée dans le stockage local de ce navigateur. Ne partage pas ton ordinateur ni ton profil Chrome si tu veux la garder privée. Le code publié ne contient pas ta clé.</div>
  <label class="fieldlabel" for="model">MODÈLE</label>
- <select id="model">
- <option value="qwen/qwen3.8-27b">Qwen 3.8 27B · texte + images</option>
- <option value="openai/gpt-oss-120b">GPT-OSS 120B · texte</option>
- </select>
+ <select id="model"><option value="qwen/qwen3.8-27b">Qwen 3.8 27B · texte + images</option><option value="openai/gpt-oss-120b">GPT-OSS 120B · texte</option></select>
  <label class="fieldlabel">TON STYLE</label>
  <div class="moods" id="moods">
- <button class="mood active" data-mood="playful">😏 Taquin</button>
- <button class="mood" data-mood="smooth">✨ Charme naturel</button>
- <button class="mood" data-mood="confident">🔥 Confiant</button>
- <button class="mood" data-mood="funny">😂 Drôle</button>
- <button class="mood" data-mood="mysterious">🌙 Intrigant</button>
- <button class="mood" data-mood="soft">🤍 Attentionné</button>
+  <button class="mood active" data-mood="playful">😏 Taquin</button><button class="mood" data-mood="smooth">✨ Charme naturel</button><button class="mood" data-mood="confident">🔥 Confiant</button><button class="mood" data-mood="funny">😂 Drôle</button><button class="mood" data-mood="mysterious">🌙 Intrigant</button><button class="mood" data-mood="soft">🤍 Attentionné</button>
  </div>
  <label class="fieldlabel" for="goal">CE QUE TU VEUX FAIRE</label>
- <select id="goal">
- <option>Répondre naturellement</option>
- <option>Flirter sans forcer</option>
- <option>Relancer une conversation</option>
- <option>Comprendre son sous-entendu</option>
- <option>Proposer un rendez-vous</option>
- <option>Désamorcer un malentendu</option>
- </select>
- <label class="fieldlabel">CAPTURE D'ÉCRAN (FACULTATIF)</label>
- <div class="upload">
- <input id="images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
- <div class="hint">PNG, JPG ou WEBP · jusqu'à 3 images par envoi. Masque les noms, numéros et infos privées avant l'envoi.</div>
- <div class="preview" id="preview"></div>
+ <select id="goal"><option>Répondre naturellement</option><option>Flirter sans forcer</option><option>Relancer une conversation</option><option>Comprendre son sous-entendu</option><option>Proposer un rendez-vous</option><option>Désamorcer un malentendu</option></select>
+ <label class="fieldlabel" for="person">PROFIL DE CONVERSATION</label>
+ <div class="row"><select id="person" style="flex:1"><option value="">Conversation générale</option></select><button class="btn small" id="newPerson">+ Profil</button></div>
+ <div class="mini" id="personHint" style="margin-top:7px">Les échanges sauvegardés dans ce profil restent sur ce navigateur.</div>
+ <div id="profileEditor" class="profile-card" style="display:none;margin-top:9px">
+  <label class="fieldlabel" for="personName">NOM DU PROFIL</label>
+  <input id="personName" type="text" placeholder="Ex : Sarah">
+  <label class="fieldlabel" for="personNotes">CONTEXTE À RETENIR</label>
+  <textarea id="personNotes" placeholder="Sujets abordés, préférences qu'elle a partagées, contexte utile…" style="min-height:70px"></textarea>
+  <div class="actions" style="margin-top:8px"><button class="btn small primary" id="savePerson">Enregistrer le profil</button><button class="btn small" id="cancelPerson">Annuler</button></div>
  </div>
+ <label class="fieldlabel">CAPTURE D'ÉCRAN (FACULTATIF)</label>
+ <div class="upload"><input id="images" type="file" accept="image/png,image/jpeg,image/webp" multiple><div class="hint">PNG, JPG ou WEBP · jusqu'à 3 images par envoi. Masque les noms, numéros et infos privées avant l'envoi.</div><div class="preview" id="preview"></div></div>
  <label class="fieldlabel" for="message">SON MESSAGE / TA QUESTION</label>
  <textarea id="message" placeholder="Ex : Elle m'a dit « tu dis ça à toutes les filles ? » Qu'est-ce que je peux répondre ?"></textarea>
- <div class="row" style="margin-top:12px">
- <button class="btn primary" id="send" style="flex:1">✦ Analyser et proposer</button>
- <button class="btn" id="clear">Effacer</button>
- </div>
+ <div class="row" style="margin-top:8px"><button class="btn small" id="voice">🎙 Dicter</button><span class="mini" id="voiceStatus">Dictée vocale selon la compatibilité du navigateur.</span></div>
+ <div class="row" style="margin-top:12px"><button class="btn primary" id="send" style="flex:1">✦ Analyser et proposer</button><button class="btn" id="regenerate" disabled>↻ Refais mieux</button><button class="btn" id="clear">Effacer</button></div>
  <div class="status" id="status" aria-live="polite"></div>
  <div id="chat"></div>
  <div id="suggestions" class="suggestions"></div>
@@ -94,6 +70,8 @@ input[type=password],input[type=text],textarea,select{width:100%;background:#0e0
  <p>Retrouve tes anciennes analyses, même après avoir fermé la page.</p>
  <div class="history-list" id="historyList"><div class="history-empty">Aucune analyse enregistrée.</div></div>
  <div class="actions" style="margin-top:9px"><button class="btn small danger" id="deleteHistory">Effacer tout l’historique</button></div>
+ <h3 style="margin-top:22px">Profils enregistrés</h3>
+ <div class="conversation-list" id="profileList"><div class="history-empty">Aucun profil.</div></div>
  <h3 style="margin-top:22px">Le rôle de WING</h3>
  <p>Un coach de conversation, pas un manipulateur. Il t'aide à être drôle, direct, attentif et authentique.</p>
  <div class="tip">Une capture permet à WING de lire les messages visibles et de comprendre le contexte. Vérifie toujours qu'il a bien lu avant d'envoyer une réponse.</div>
@@ -101,148 +79,60 @@ input[type=password],input[type=text],textarea,select{width:100%;background:#0e0
  <h3 style="margin-top:20px">Confidentialité</h3>
  <p>Les images et messages sont envoyés à Groq pour analyse. Ils ne sont pas uniquement traités sur ton appareil. N'envoie pas de contenu intime ou d'informations personnelles sensibles.</p>
  <p class="hint">La clé saisie dans cette page est utilisée depuis ton navigateur pour appeler api.groq.com. Toute personne ayant accès à ton navigateur peut potentiellement l'utiliser.</p>
- <div class="actions"><button class="btn small" id="forgetKey">Supprimer ma clé du navigateur</button></div>
+ <div class="actions"><button class="btn small" id="forgetKey">Supprimer ma clé du navigateur</button><button class="btn small danger" id="deleteAllData">Effacer toutes mes données</button></div>
 </aside>
 </div>
 <div class="foot">WING · Une bonne conversation reste une rencontre entre deux personnes.</div>
 </div>
 <script>
 (()=>{
-const $=id=>document.getElementById(id);
-const API='https://api.groq.com/openai/v1/chat/completions';
-const SYSTEM=`Tu es WING, un coach de conversation exceptionnel. Tu aides l'utilisateur à répondre à une femme avec intelligence sociale, humour, naturel, confiance et charme. Tu écris en français conversationnel, avec du slang léger si le contexte s'y prête. Évite les phrases génériques, les compliments excessifs, les techniques de manipulation, la culpabilisation, la pression sexuelle et les jeux psychologiques. Respecte les limites et l'autonomie de l'autre personne. Ne prétends jamais savoir exactement ce qu'elle pense. Si une capture est fournie, lis les messages visibles, distingue clairement qui parle, résume brièvement le contexte et propose des réponses adaptées. Ne déduis pas d'identité ou d'informations sensibles. Réponds dans ce format:
-LECTURE DU CONTEXTE: une phrase courte.
-CE QUE JE TE CONSEILLE: une phrase expliquant la meilleure approche.
-RÉPONSES POSSIBLES:
-1. Naturelle: ...
-2. Taquine: ...
-3. Audacieuse: ...
-Choisis des réponses courtes, vivantes et réellement envoyables. Si son message exprime un refus ou une limite, conseille de respecter cela sans insister.`;
-let mood='playful', history=[], files=[];
+const $=id=>document.getElementById(id), API='https://api.groq.com/openai/v1/chat/completions';
+const KEYS={history:'wing_analysis_history_v2',profiles:'wing_profiles_v1',language:'wing_language',key:'wing_groq_key',mood:'wing_mood'};
 const languageNames={fr:'French (français)',en:'English',ht:'Haitian Creole (Kreyòl ayisyen)',es:'Spanish (español)',pt:'Portuguese (português)'};
-const savedLanguage=localStorage.getItem('wing_language')||'fr';
-$('language').value=languageNames[savedLanguage]?savedLanguage:'fr';
-$('language').addEventListener('change',()=>{
- localStorage.setItem('wing_language',$('language').value);
- document.documentElement.lang=$('language').value;
- setStatus('Language changed. WING will answer in '+languageNames[$('language').value]+'.');
-});
-document.documentElement.lang=$('language').value;
-const HISTORY_KEY='wing_analysis_history_v1';
-let savedHistory=loadSavedHistory();
-function loadSavedHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')}catch{return []}}
-function persistHistory(){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(savedHistory.slice(0,60)))}catch(e){setStatus('Stockage plein : certaines anciennes analyses peuvent ne pas être sauvegardées.',true)}}
-function renderHistory(){
- const root=$('historyList');root.innerHTML='';
- if(!savedHistory.length){const empty=document.createElement('div');empty.className='history-empty';empty.textContent='Aucune analyse enregistrée.';root.append(empty);return}
- savedHistory.forEach(item=>{
-  const row=document.createElement('div');row.className='history-item';
-  const open=document.createElement('button');open.className='btn small history-open';
-  const title=document.createElement('strong');title.textContent=item.title||'Analyse sans titre';
-  const date=document.createElement('small');date.textContent=new Date(item.date).toLocaleString('fr-FR');
-  open.append(title,date);open.onclick=()=>openHistory(item.id);
-  const del=document.createElement('button');del.className='btn small';del.textContent='×';del.title='Supprimer cette analyse';
-  del.onclick=()=>{savedHistory=savedHistory.filter(x=>x.id!==item.id);persistHistory();renderHistory();setStatus('Analyse supprimée de l’historique.')};
-  row.append(open,del);root.append(row);
- });
-}
-function openHistory(id){
- const item=savedHistory.find(x=>x.id===id);if(!item)return;
- history=[{role:'user',content:item.userText||'Analyse précédente'},{role:'assistant',content:item.answer}];
- $('chat').innerHTML='';$('suggestions').innerHTML='';
- addBubble('TOI',item.userText||'Analyse de capture d’écran','user');
- addBubble('WING',item.answer,'');
- extractOptions(item.answer);$('message').value=item.userText||'';
- setStatus('Ancienne analyse chargée. Les images d’origine ne sont pas conservées.');
- window.scrollTo({top:0,behavior:'smooth'});
-}
-renderHistory();
-const moodNames={playful:'taquin et joueur',smooth:'charme naturel et subtil',confident:'confiant et direct sans arrogance',funny:'drôle et spontané',mysterious:'intrigant sans jouer à des jeux',soft:'attentionné et chaleureux'};
+const moodNames={playful:'taquin et joueur',smooth:'charme naturel et subtil',confident:'confiant et direct sans arrogance',funny:'drôle et spontané',mysterious:'intrigant et subtil',soft:'attentionné et chaleureux'};
+const SYSTEM=`Tu es WING, un assistant social doté d'une excellente intelligence conversationnelle. Tu aides à comprendre les échanges humains et à répondre avec naturel, humour, empathie, confiance et charme. Tu peux aider pour la séduction, l'amitié, les conflits, les excuses, les limites, les invitations et la communication quotidienne. Ne manipule pas, ne culpabilise pas, ne pousse jamais à contourner un refus et ne recommande pas de pression sexuelle. Ne prétends pas lire les pensées : distingue les faits visibles, les hypothèses et les incertitudes. Analyse le ton, le rythme, les sous-entendus possibles et les changements de dynamique sans présenter une interprétation comme une certitude. Si une capture est fournie, lis précisément les messages visibles, identifie qui parle et signale toute partie illisible. Adapte ton vocabulaire au style de l'utilisateur sans copier mécaniquement. Évite les réponses clichées, répétitives ou trop parfaites. Réponds dans la langue demandée. Structure obligatoire : LECTURE DU CONTEXTE (courte); CE QUI SE JOUE (faits et hypothèses séparés); CONSEIL (stratégie honnête); 5 RÉPONSES POSSIBLES avec ces titres exacts : NATURELLE, TAQUINE, SÉDUISANTE, AUDACIEUSE, ATTENTIONNÉE. Chaque proposition doit être courte, distincte, crédible et prête à envoyer. Termine par une recommandation de la meilleure option selon le contexte.`;
+let mood=localStorage.getItem(KEYS.mood)||'playful', history=[], files=[], lastRequest=null, recognition=null;
+let savedHistory=load(KEYS.history,[]), profiles=load(KEYS.profiles,[]), currentProfile='';
+function load(k,fallback){try{return JSON.parse(localStorage.getItem(k)||'null')??fallback}catch{return fallback}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){setStatus('Stockage local saturé. Supprime quelques anciens éléments.',true);return false}}
 function setStatus(t,err=false){$('status').textContent=t;$('status').className='status'+(err?' danger':'')}
-function key(){return $('apiKey').value.trim()||localStorage.getItem('wing_groq_key')||''}
+function key(){return $('apiKey').value.trim()||localStorage.getItem(KEYS.key)||''}
 function updateConnection(){$('connection').textContent=key()?'● CLÉ CONFIGURÉE':'● CLÉ NON CONFIGURÉE'}
-$('apiKey').value=localStorage.getItem('wing_groq_key')||'';updateConnection();
-$('saveKey').onclick=()=>{
- const k=$('apiKey').value.trim();
- if(!k){setStatus('Colle ta clé Groq avant de l’enregistrer.',true);return}
- localStorage.setItem('wing_groq_key',k);updateConnection();setStatus('Clé enregistrée dans ce navigateur.');
-};
+$('apiKey').value=localStorage.getItem(KEYS.key)||'';updateConnection();
+$('language').value=localStorage.getItem(KEYS.language)||'fr';if(!languageNames[$('language').value])$('language').value='fr';document.documentElement.lang=$('language').value;
+$('language').onchange=()=>{localStorage.setItem(KEYS.language,$('language').value);document.documentElement.lang=$('language').value;setStatus('Langue modifiée : '+languageNames[$('language').value]+'.')};
+$('saveKey').onclick=()=>{let k=$('apiKey').value.trim();if(!k)return setStatus('Colle ta clé Groq.',true);localStorage.setItem(KEYS.key,k);updateConnection();setStatus('Clé enregistrée dans ce navigateur.')};
 $('showKey').onclick=()=>{$('apiKey').type=$('apiKey').type==='password'?'text':'password';$('showKey').textContent=$('apiKey').type==='password'?'Voir':'Masquer'};
-$('apiKey').addEventListener('input',updateConnection);
-$('forgetKey').onclick=()=>{localStorage.removeItem('wing_groq_key');$('apiKey').value='';updateConnection();setStatus('Clé supprimée du stockage local.')};
-$('moods').onclick=e=>{
- const b=e.target.closest('[data-mood]');if(!b)return;
- mood=b.dataset.mood;document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('active',x===b));
-};
-$('images').onchange=async e=>{
- files=[...e.target.files].slice(0,3);$('preview').innerHTML='';
- for(const f of files){
-  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){setStatus('Format non pris en charge : '+f.name,true);continue}
-  if(f.size>8*1024*1024){setStatus('Image trop lourde (maximum 8 Mo par image).',true);continue}
-  const img=document.createElement('img');img.alt='Aperçu de la capture';img.src=URL.createObjectURL(f);$('preview').append(img);
- }
-};
-function fileData(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
-function addBubble(who,text,kind){
- const d=document.createElement('div');d.className='bubble '+(kind||'');
- const h=document.createElement('div');h.className='who';h.textContent=who;
- const p=document.createElement('div');p.textContent=text;d.append(h,p);$('chat').append(d);
-}
-function extractOptions(text){
- $('suggestions').innerHTML='';
- const lines=text.split('\n');let inOptions=false,items=[];
- for(const line of lines){
-  if(/RÉPONSES POSSIBLES/i.test(line)){inOptions=true;continue}
-  if(inOptions&&line.trim())items.push(line.replace(/^\s*(?:\d+[.)]|[-•])\s*/,'').replace(/^(Naturelle|Taquine|Audacieuse)\s*:\s*/i,''));
- }
- if(items.length){
-  items.slice(0,3).forEach((s,i)=>{
-   const card=document.createElement('div');card.className='suggestion';
-   const m=document.createElement('div');m.className='meta';m.textContent=['OPTION NATURELLE','OPTION TAQUINE','OPTION AUDACIEUSE'][i];
-   const p=document.createElement('p');p.textContent=s;
-   const b=document.createElement('button');b.className='btn small';b.textContent='Copier';
-   b.onclick=async()=>{try{await navigator.clipboard.writeText(s);setStatus('Réponse copiée.')}catch{setStatus('Copie non disponible dans ce navigateur.',true)}};
-   card.append(m,p,b);$('suggestions').append(card);
-  });
- }
-}
-async function send(){
- const k=key();if(!k){setStatus('Ajoute ta clé API Groq pour commencer.',true);return}
- const msg=$('message').value.trim();if(!msg&&!files.length){setStatus('Écris son message ou ajoute une capture.',true);return}
- const btn=$('send');btn.disabled=true;btn.textContent='Analyse en cours…';setStatus('WING lit le contexte…');$('suggestions').innerHTML='';
- try{
-  const content=[];
-  let prompt=`LANGUE DE RÉPONSE OBLIGATOIRE : ${languageNames[$('language').value]}. Réponds entièrement dans cette langue, y compris l'analyse, les explications et les trois propositions. Si le message original est dans une autre langue, comprends-le mais rédige tes conseils dans la langue choisie.
-Style souhaité : ${moodNames[mood]}. Objectif : ${$('goal').value}.`;
-  if(msg)prompt+='\nMessage ou demande de l’utilisateur : '+msg;
-  if(files.length){
-   prompt+='\nAnalyse aussi les captures d’écran jointes. Identifie les messages pertinents et leur ordre chronologique.';
-   for(const f of files){if(f.size>8*1024*1024)continue;content.push({type:'image_url',image_url:{url:await fileData(f)}})}
-  }
-  content.unshift({type:'text',text:prompt});
-  const messages=[{role:'system',content:SYSTEM},...history.slice(-8),{role:'user',content}];
-  const model=$('model').value;
-  const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},body:JSON.stringify({model,messages,temperature:0.95,max_completion_tokens:900,top_p:0.95})});
-  const data=await res.json();
-  if(!res.ok)throw new Error(data?.error?.message||('Erreur API HTTP '+res.status));
-  const answer=data.choices?.[0]?.message?.content;
-  if(!answer)throw new Error('Groq n’a renvoyé aucune réponse.');
-  addBubble('TOI',msg||'Analyse de capture d’écran','user');addBubble('WING',answer,'');
-  savedHistory.unshift({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),date:new Date().toISOString(),title:(msg||'Analyse de capture').slice(0,70),userText:msg,answer,mood,goal:$('goal').value,imageNames:files.map(f=>f.name)});
-  savedHistory=savedHistory.slice(0,60);persistHistory();renderHistory();
-  history.push({role:'user',content:msg||'Analyse la capture d’écran jointe.'},{role:'assistant',content:answer});
-  history=history.slice(-10);extractOptions(answer);setStatus('Analyse terminée. Relis les propositions avant de les envoyer.');
- }catch(err){setStatus('Erreur : '+err.message,true)}
- finally{btn.disabled=false;btn.textContent='✦ Analyser et proposer'}
-}
-$('deleteHistory').onclick=()=>{
- if(!savedHistory.length)return;
- if(!confirm('Supprimer tout l’historique WING ?'))return;
- savedHistory=[];persistHistory();renderHistory();setStatus('Tout l’historique a été effacé.');
-};
-$('send').onclick=send;
-$('message').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')send()});
-$('clear').onclick=()=>{history=[];files=[];$('images').value='';$('preview').innerHTML='';$('message').value='';$('chat').innerHTML='';$('suggestions').innerHTML='';setStatus('Conversation effacée.')};
+$('apiKey').oninput=updateConnection;$('forgetKey').onclick=()=>{localStorage.removeItem(KEYS.key);$('apiKey').value='';updateConnection();setStatus('Clé supprimée du navigateur.')};
+$('moods').onclick=e=>{let b=e.target.closest('[data-mood]');if(!b)return;mood=b.dataset.mood;localStorage.setItem(KEYS.mood,mood);document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('active',x===b))};
+document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('active',x.dataset.mood===mood));
+function persistHistory(){savedHistory=savedHistory.slice(0,100);save(KEYS.history,savedHistory)}
+function renderHistory(){let root=$('historyList');root.innerHTML='';if(!savedHistory.length){root.innerHTML='<div class="history-empty">Aucune analyse enregistrée.</div>';return}savedHistory.forEach(item=>{let row=document.createElement('div');row.className='history-item';let b=document.createElement('button');b.className='btn small history-open';let title=document.createElement('strong');title.textContent=item.title||'Conversation';let date=document.createElement('small');date.textContent=new Date(item.date).toLocaleString();b.append(title,date);b.onclick=()=>openHistory(item.id);let d=document.createElement('button');d.className='btn small';d.textContent='×';d.onclick=()=>{savedHistory=savedHistory.filter(x=>x.id!==item.id);persistHistory();renderHistory();setStatus('Échange supprimé.')};row.append(b,d);root.append(row)})}
+function renderProfiles(){let sel=$('person'),keep=currentProfile;sel.innerHTML='<option value="">Conversation générale</option>';profiles.forEach(p=>{let o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.append(o)});sel.value=keep;let list=$('profileList');list.innerHTML='';if(!profiles.length){list.innerHTML='<div class="history-empty">Aucun profil.</div>';return}profiles.forEach(p=>{let b=document.createElement('button');b.className='btn small history-open';b.textContent=p.name;b.onclick=()=>{currentProfile=p.id;sel.value=p.id;showProfileHint();setStatus('Profil '+p.name+' sélectionné.')};list.append(b)})}
+function showProfileHint(){let p=profiles.find(x=>x.id===currentProfile);$('personHint').textContent=p?(p.notes||'Profil sélectionné. Aucun contexte complémentaire.').slice(0,240):'Les échanges sauvegardés dans ce profil restent sur ce navigateur.'}
+$('person').onchange=()=>{currentProfile=$('person').value;showProfileHint();history=[];$('chat').innerHTML='';$('suggestions').innerHTML='';setStatus('Profil changé. Le contexte de cette conversation est chargé à partir des échanges sauvegardés.')};
+$('newPerson').onclick=()=>{$('profileEditor').style.display='block';$('personName').value='';$('personNotes').value='';$('personName').focus()};
+$('cancelPerson').onclick=()=>{$('profileEditor').style.display='none'};
+$('savePerson').onclick=()=>{let name=$('personName').value.trim();if(!name)return setStatus('Donne un nom au profil.',true);let p={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,notes:$('personNotes').value.trim()};profiles.push(p);save(KEYS.profiles,profiles);currentProfile=p.id;$('profileEditor').style.display='none';renderProfiles();showProfileHint();setStatus('Profil créé.')};
+function addBubble(who,text,kind){let d=document.createElement('div');d.className='bubble '+(kind||'');let h=document.createElement('div');h.className='who';h.textContent=who;let p=document.createElement('div');p.textContent=text;d.append(h,p);$('chat').append(d)}
+function openHistory(id){let item=savedHistory.find(x=>x.id===id);if(!item)return;currentProfile=item.profileId||'';$('person').value=currentProfile;showProfileHint();history=item.messages||[];$('chat').innerHTML='';$('suggestions').innerHTML='';history.forEach(m=>addBubble(m.role==='user'?'TOI':'WING',typeof m.content==='string'?m.content:'Message avec capture',m.role==='user'?'user':''));if(item.answer)renderOptions(item.answer);$('message').value='';lastRequest=null;$('regenerate').disabled=true;setStatus('Conversation restaurée. Les captures originales ne sont pas conservées.');window.scrollTo({top:0,behavior:'smooth'})}
+function renderOptions(text){$('suggestions').innerHTML='';let labels=['NATURELLE','TAQUINE','SÉDUISANTE','AUDACIEUSE','ATTENTIONNÉE'];let lines=text.split('\n');let found=[];for(let label of labels){let idx=lines.findIndex(x=>new RegExp('^\\s*(?:\\d+[.)]\\s*)?'+label+'\\s*:', 'i').test(x));if(idx>=0){let val=lines[idx].replace(/^\s*(?:\d+[.)]\s*)?/,'').replace(/^[^:]+:\s*/,'').trim();for(let j=idx+1;j<lines.length&&!/^(?:\s*\d+[.)]\s*)?(?:NATURELLE|TAQUINE|SÉDUISANTE|AUDACIEUSE|ATTENTIONNÉE)\s*:/i.test(lines[j]);j++)if(lines[j].trim())val+=' '+lines[j].trim();found.push({label,val})}}
+if(!found.length)return;found.forEach(x=>{let card=document.createElement('div');card.className='suggestion';let meta=document.createElement('div');meta.className='meta';meta.textContent=x.label;let p=document.createElement('p');p.textContent=x.val;let b=document.createElement('button');b.className='btn small';b.textContent='Copier';b.onclick=async()=>{try{await navigator.clipboard.writeText(x.val);setStatus('Réponse copiée.')}catch{setStatus('Copie impossible ici.',true)}};card.append(meta,p,b);$('suggestions').append(card)})}
+function storeConversation(userText,answer){let now=new Date().toISOString();let prev=savedHistory.find(x=>x.profileId===currentProfile&&x.id===window.activeHistoryId);let messages=[...history,{role:'user',content:userText},{role:'assistant',content:answer}].slice(-30);let item={id:prev?.id||(crypto.randomUUID?crypto.randomUUID():String(Date.now())),profileId:currentProfile,date:now,title:userText.slice(0,65)||'Analyse de capture',userText,answer,messages};savedHistory.unshift(item);savedHistory=savedHistory.filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i);persistHistory();window.activeHistoryId=item.id;renderHistory();history=messages}
+$('images').onchange=e=>{files=[...e.target.files].slice(0,3);$('preview').innerHTML='';files.forEach(f=>{if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>8*1024*1024){setStatus('Image invalide ou supérieure à 8 Mo.',true);return}let img=document.createElement('img');img.alt='Aperçu';img.src=URL.createObjectURL(f);$('preview').append(img)})};
+function fileData(f){return new Promise((resolve,reject)=>{let r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(f)})}
+async function send(regenerate=false){let k=key(),msg=$('message').value.trim();if(!k)return setStatus('Ajoute ta clé API Groq.',true);if(!regenerate&&!msg&&!files.length)return setStatus('Écris un message ou ajoute une capture.',true);let req=regenerate?lastRequest:{msg,files:[...files],mood,goal:$('goal').value,language:$('language').value,profileId:currentProfile};if(!req)return setStatus('Aucune analyse à refaire.',true);lastRequest=req;
+let btn=$('send');btn.disabled=true;$('regenerate').disabled=true;btn.textContent='WING réfléchit…';setStatus('Analyse approfondie en cours…');$('suggestions').innerHTML='';
+try{let profile=profiles.find(p=>p.id===req.profileId);let prompt=`LANGUE OBLIGATOIRE : ${languageNames[req.language]}. Réponds entièrement dans cette langue. Style de l'utilisateur : ${moodNames[req.mood]}. Objectif : ${req.goal}.`;if(profile)prompt+=`\nPROFIL / CONTEXTE FOURNI PAR L'UTILISATEUR : ${profile.name}. ${profile.notes||''}`;if(req.msg)prompt+='\nMessage ou question : '+req.msg;if(req.files.length)prompt+='\nAnalyse les captures jointes, les locuteurs et la chronologie. N\'invente aucun texte illisible.';let content=[{type:'text',text:prompt}];for(let f of req.files){if(f.size<=8*1024*1024&&/^image\/(png|jpeg|webp)$/.test(f.type))content.push({type:'image_url',image_url:{url:await fileData(f)}})}let msgs=[{role:'system',content:SYSTEM},...history.slice(-12),{role:'user',content}];let model=$('model').value;let res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},body:JSON.stringify({model,messages:msgs,temperature:0.95,max_completion_tokens:1200,top_p:0.95})});let data=await res.json();if(!res.ok)throw Error(data?.error?.message||'Erreur API '+res.status);let answer=data.choices?.[0]?.message?.content;if(!answer)throw Error('Réponse vide du modèle.');addBubble('TOI',req.msg||'Analyse de capture','user');addBubble('WING',answer,'');renderOptions(answer);storeConversation(req.msg||'Analyse de capture',answer);$('regenerate').disabled=false;setStatus('Analyse terminée. Tu peux copier une réponse ou demander une nouvelle version.');files=[];$('images').value='';$('preview').innerHTML='';
+}catch(e){setStatus('Erreur : '+e.message,true)}finally{btn.disabled=false;btn.textContent='✦ Analyser et proposer'}}
+$('send').onclick=()=>send(false);$('regenerate').onclick=()=>send(true);
+// Voice dictation uses the browser's speech recognition when available.
+$('voice').onclick=()=>{let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('voiceStatus').textContent='Dictée vocale non disponible dans ce navigateur.';return}if(recognition){recognition.stop();recognition=null;$('voice').classList.remove('voice-on');$('voiceStatus').textContent='Dictée arrêtée.';return}recognition=new SR();recognition.lang=({fr:'fr-FR',en:'en-US',ht:'fr-FR',es:'es-ES',pt:'pt-BR'})[$('language').value];recognition.interimResults=true;recognition.continuous=true;recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript+' ';$('message').value=( $('message').value+' '+t).trim()};recognition.onerror=()=>{$('voiceStatus').textContent='Erreur de dictée ou permission micro refusée.'};recognition.onend=()=>{$('voice').classList.remove('voice-on');$('voiceStatus').textContent='Dictée terminée.';recognition=null};recognition.start();$('voice').classList.add('voice-on');$('voiceStatus').textContent='Écoute en cours…'};
+$('clear').onclick=()=>{history=[];files=[];lastRequest=null;$('images').value='';$('preview').innerHTML='';$('message').value='';$('chat').innerHTML='';$('suggestions').innerHTML='';$('regenerate').disabled=true;setStatus('Zone de rédaction effacée. Les conversations sauvegardées restent dans l’historique.')};
+$('deleteHistory').onclick=()=>{if(confirm('Effacer tout l’historique des conversations ?')){savedHistory=[];save(KEYS.history,savedHistory);renderHistory();setStatus('Historique effacé.')}};
+$('deleteAllData').onclick=()=>{if(!confirm('Effacer toutes les conversations, tous les profils et la clé API enregistrée sur cet appareil ?'))return;[KEYS.history,KEYS.profiles,KEYS.key].forEach(k=>localStorage.removeItem(k));savedHistory=[];profiles=[];currentProfile='';history=[];$('apiKey').value='';renderHistory();renderProfiles();updateConnection();$('chat').innerHTML='';$('suggestions').innerHTML='';setStatus('Données locales effacées.')};
+$('message').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')send(false)});
+renderHistory();renderProfiles();showProfileHint();
 })();
 </script>
 </body>
