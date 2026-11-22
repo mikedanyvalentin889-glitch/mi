@@ -1,54 +1,574 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WING AI — Your Personal Wingman</title>
+<style>
+:root {
+  --bg:#0c0b13; --panel:#171522; --line:#302d43;
+  --text:#f8f6ff; --muted:#a7a2b8;
+  --pink:#ff5c9a; --purple:#9877ff; --green:#65e6b0;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:radial-gradient(circle at top right,#351a3b,transparent 38%),var(--bg);
+ color:var(--text);font-family:Inter,Arial,sans-serif;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.container{max-width:1100px;margin:auto;padding:25px 16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{background:linear-gradient(135deg,var(--pink),var(--purple));padding:12px 16px;border-radius:14px;font-weight:900;font-size:23px}
+.logo h1{margin:0;letter-spacing:4px}
+.logo small{color:var(--muted);font-size:10px}
+.hero{margin:35px 0}
+.hero h2{font-size:clamp(30px,5vw,48px);margin:8px 0}
+.gradient{background:linear-gradient(90deg,#ff83b4,#ad91ff);color:transparent;background-clip:text}
+.hero p{color:var(--muted);max-width:650px}
+.layout{display:grid;grid-template-columns:1fr 300px;gap:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:19px;min-width:0}
+h3{font-size:15px;margin:0 0 15px}
+label{display:block;color:var(--muted);font-size:10px;font-weight:bold;letter-spacing:1px;margin:16px 0 7px}
+input,textarea,select{
+ width:100%;padding:12px;background:#0e0d17;color:white;
+ border:1px solid var(--line);border-radius:11px;outline:none;
+}
+textarea{min-height:100px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--purple)}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1}
+.btn{border:1px solid var(--line);background:#262338;color:white;border-radius:10px;padding:10px 13px}
+.primary{background:linear-gradient(100deg,var(--pink),var(--purple));border:0;font-weight:bold}
+.small{font-size:12px;padding:8px 10px}
+.moods{display:flex;gap:7px;flex-wrap:wrap}
+.mood{background:#242136;border:1px solid var(--line);color:white;border-radius:25px;padding:8px 11px;font-size:12px}
+.mood.active{border-color:var(--pink);color:#ff9fc3;background:#ff5c9a18}
+.upload{border:1px dashed #625a7c;padding:15px;border-radius:12px;background:#100f19}
+.upload input{border:0;padding:5px}
+.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.preview img{width:75px;height:90px;object-fit:cover;border-radius:9px}
+.hint,.muted{color:var(--muted);font-size:11px}
+.status{color:var(--green);font-size:12px;margin-top:12px;min-height:20px}
+.status.error{color:#ff829f}
+.box{background:#100f19;border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:12px}
+.reply{background:#100f19;border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:9px}
+.reply p{margin:7px 0 12px;font-size:15px}
+.reply small{color:var(--muted);font-size:10px}
+.tip{font-size:12px;color:#d7d0eb;background:#9b7cff12;padding:11px;border-left:2px solid var(--purple);margin:12px 0;border-radius:5px}
+.history{max-height:300px;overflow:auto}
+.history button{width:100%;text-align:left;margin:4px 0}
+.divider{height:1px;background:var(--line);margin:18px 0}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.container{padding:15px 10px}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+ <div class="logo">
+  <div class="logo-icon">W</div>
+  <div><h1>WING</h1><small>YOUR PERSONAL WINGMAN</small></div>
+ </div>
+ <select id="language" style="width:auto">
+  <option value="fr">🇫🇷 Français</option>
+  <option value="en">🇺🇸 English</option>
+  <option value="ht">🇭🇹 Kreyòl</option>
+  <option value="es">🇪🇸 Español</option>
+  <option value="pt">🇧🇷 Português</option>
+ </select>
+</header>
+
+<section class="hero">
+ <div style="color:var(--pink);font-size:11px;letter-spacing:2px">READ THE CHAT. UNDERSTAND THE VIBE.</div>
+ <h2>Your conversation.<br><span class="gradient">Your next move.</span></h2>
+ <p>WING analyse tes conversations et t'aide à trouver des réponses naturelles, courtes et adaptées au contexte.</p>
+</section>
+
+<div class="layout">
+<main class="panel">
+
+ <h3>✦ Configuration</h3>
+
+ <label>GROQ API KEY</label>
+ <div class="row">
+  <input id="apiKey" type="password" placeholder="gsk_...">
+  <button class="btn small" id="showKey">Voir</button>
+  <button class="btn small" id="saveKey">Sauver</button>
+ </div>
+ <p class="hint">Ta clé est conservée dans le stockage local de ce navigateur.</p>
+
+ <label>MODÈLE IA</label>
+ <select id="model">
+  <option value="qwen/qwen3.8-27b">Qwen 3.8 27B — Vision + Texte</option>
+ </select>
+
+ <label>TON STYLE</label>
+ <div class="moods" id="moods">
+  <button class="mood active" data-mood="playful">😏 Taquin</button>
+  <button class="mood" data-mood="natural">✨ Naturel</button>
+  <button class="mood" data-mood="confident">🔥 Confiant</button>
+  <button class="mood" data-mood="funny">😂 Drôle</button>
+  <button class="mood" data-mood="soft">🤍 Attentionné</button>
+ </div>
+
+ <label>OBJECTIF</label>
+ <select id="goal">
+  <option value="reply">Répondre à son dernier message</option>
+  <option value="open">Démarrer une conversation</option>
+  <option value="restart">Relancer une conversation</option>
+  <option value="date">Proposer un rendez-vous</option>
+  <option value="understand">Comprendre son message</option>
+ </select>
+
+ <div class="divider"></div>
+
+ <h3>① Scanner une conversation</h3>
+ <div class="upload">
+  <input id="images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+  <p class="hint">Jusqu'à 3 captures. Formats JPG, PNG et WEBP. 8 Mo maximum par image.</p>
+  <div class="preview" id="preview"></div>
+ </div>
+
+ <button class="btn primary" id="scan" style="width:100%;margin-top:12px">⌕ Scanner les captures</button>
+
+ <div id="scanPanel" class="box" hidden>
+  <strong style="font-size:13px">② Vérifie le texte détecté</strong>
+  <p class="hint" id="scanInfo">Corrige les erreurs de lecture avant de continuer.</p>
+  <textarea id="transcript" placeholder="Messages extraits de la capture..."></textarea>
+  <label>CONTEXTE SUPPLÉMENTAIRE</label>
+  <textarea id="context" style="min-height:65px" placeholder="Ex : on se parle depuis hier..."></textarea>
+  <button class="btn primary" id="generateScan" style="width:100%;margin-top:10px">Générer les réponses</button>
+ </div>
+
+ <div class="divider"></div>
+
+ <h3>Ou colle directement un message</h3>
+ <textarea id="message" placeholder="Colle ici le message reçu..."></textarea>
+
+ <button class="btn primary" id="generate" style="width:100%;margin-top:10px">✦ Générer 5 réponses</button>
+ <button class="btn" id="clear" style="width:100%;margin-top:8px">Effacer</button>
+
+ <div class="status" id="status" aria-live="polite"></div>
+
+ <div id="analysis" class="box" hidden></div>
+ <div id="results"></div>
+
+</main>
+
+<aside class="panel">
+ <h3>Conversation History</h3>
+ <div class="history" id="history">
+  <p class="muted">Aucune conversation enregistrée.</p>
+ </div>
+
+ <div class="divider"></div>
+ <h3>WING Intelligence</h3>
+ <div class="tip">Analyse d'abord les vrais messages visibles. Ne devine pas les passages illisibles.</div>
+ <div class="tip">Génère cinq réponses distinctes et adaptées au contexte.</div>
+ <div class="tip">Privilégie les messages courts, naturels et faciles à envoyer.</div>
+ <div class="tip">Tu gardes toujours le contrôle : WING n'envoie aucun message à ta place.</div>
+
+ <div class="divider"></div>
+ <h3>Confidentialité</h3>
+ <p class="muted">Les captures et messages sont envoyés à Groq pour traitement. Évite les informations sensibles. La clé API dans le navigateur n'est pas totalement protégée.</p>
+ <button class="btn small" id="deleteHistory">Effacer l'historique</button>
+ <button class="btn small" id="deleteKey">Retirer la clé API</button>
+</aside>
+</div>
+</div>
+
 <script>
-(()=>{
-const $=id=>document.getElementById(id),API='https://api.groq.com/openai/v1/chat/completions';
-const K={key:'wing_groq_key',lang:'wing_language',mood:'wing_v5_mood',hist:'wing_v5_history',profiles:'wing_v5_profiles'};
-const LANG={fr:'French (français)',en:'English',ht:'Haitian Creole (Kreyòl ayisyen)',es:'Spanish (español)',pt:'Portuguese (português)'};
-const MOOD={playful:'taquin, spontané, légèrement provocateur',smooth:'naturel, fluide, subtil',confident:'confiant, direct, sans arrogance',funny:'drôle, vif, pas clownesque',soft:'chaleureux, attentionné, sincère'};
-const SCAN_SYSTEM=`You are a careful screenshot transcription and conversation-structure engine. Do NOT write replies. Read only what is visibly present in the supplied chat screenshots. Preserve the original language, spelling, emojis, punctuation and message order. Separate each visible message into a chronological transcript and identify speaker as ME, THEM or UNKNOWN only when the screenshot makes it reasonably clear. Identify the latest visible message and its speaker. Never invent cropped, hidden, blurred or unreadable text. If a fragment is uncertain, write [UNCLEAR] and list it in uncertain_parts. Do not infer romantic interest or psychology from a screenshot. If multiple screenshots overlap, avoid duplicating repeated messages and preserve chronological order. Return ONLY valid JSON with this shape: {"screen_type":"chat|profile|other","transcript":"ME: ...\\nTHEM: ...","latest_message":"exact latest visible message or empty string","latest_speaker":"ME|THEM|UNKNOWN","uncertain_parts":["..."],"scan_note":"short note about readability or missing context"}.`;
-const REPLY_SYSTEM=`You are WING, a concise, socially intelligent texting wingman. Generate natural, human-sounding messages that could plausibly be sent by the user. Avoid generic pickup lines, clichés, over-polished wording, fake confidence, manipulative tactics, pressure, guilt, or sexual escalation without clear mutual context. Respect rejection and boundaries. Use specific details from the supplied transcript. Do not invent facts, feelings, intentions, or shared experiences. If the latest message is from ME, do not pretend THEM sent it; suggest the next appropriate move or ask for the missing reply context. If the transcript is ambiguous, be cautious. Output in the requested language only. Every suggested message must be SHORT: ideally 4–12 words, never more than 14 words, usually one sentence, no explanation inside the message. Each option must be genuinely different, not five rewrites of the same line. Return ONLY valid JSON: {"read":"one short sentence describing the actual conversational situation","tone":"one or two words","next_move":"one short sentence of advice","replies":[{"style":"Natural","text":"..."},{"style":"Playful","text":"..."},{"style":"Flirty","text":"..."},{"style":"Confident","text":"..."},{"style":"Warm","text":"..."}]}.`;
-let mood=localStorage.getItem(K.mood)||'playful',files=[],profiles=load(K.profiles,[]),saved=load(K.hist,[]),currentProfile='',lastReq=null,recognition=null;
-function load(k,d){try{return JSON.parse(localStorage.getItem(k)||'null')??d}catch{return d}}
-function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){status('Le stockage du navigateur est plein.',true);return false}}
-function status(t,err=false){$('status').textContent=t;$('status').className='status'+(err?' error':'')}
-function apiKey(){return $('apiKey').value.trim()||localStorage.getItem(K.key)||''}
-function connection(){ $('connection').textContent=apiKey()?'● CLÉ CONFIGURÉE':'● CLÉ MANQUANTE'}
-$('apiKey').value=localStorage.getItem(K.key)||'';connection();
-$('language').value=localStorage.getItem(K.lang)||'fr';if(!LANG[$('language').value])$('language').value='fr';document.documentElement.lang=$('language').value;
-$('language').onchange=()=>{localStorage.setItem(K.lang,$('language').value);document.documentElement.lang=$('language').value;status('Langue de réponse : '+LANG[$('language').value])};
-$('saveKey').onclick=()=>{let v=$('apiKey').value.trim();if(!v)return status('Colle ta clé API Groq.',true);localStorage.setItem(K.key,v);connection();status('Clé enregistrée sur cet appareil.')};
-$('showKey').onclick=()=>{$('apiKey').type=$('apiKey').type==='password'?'text':'password';$('showKey').textContent=$('apiKey').type==='password'?'Voir':'Masquer'};
-$('apiKey').oninput=connection;$('forgetKey').onclick=()=>{localStorage.removeItem(K.key);$('apiKey').value='';connection();status('Clé retirée du navigateur.')};
-$('moods').onclick=e=>{let b=e.target.closest('[data-mood]');if(!b)return;mood=b.dataset.mood;localStorage.setItem(K.mood,mood);document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('active',x===b))};
-document.querySelectorAll('.mood').forEach(x=>x.classList.toggle('active',x.dataset.mood===mood));
-function renderProfiles(){let s=$('person'),v=currentProfile;s.innerHTML='<option value="">Conversation générale</option>';profiles.forEach(p=>{let o=document.createElement('option');o.value=p.id;o.textContent=p.name;s.append(o)});s.value=v;let l=$('profileList');l.innerHTML='';if(!profiles.length){l.innerHTML='<div class="empty">Aucun profil.</div>';return}profiles.forEach(p=>{let b=document.createElement('button');b.className='btn small';b.textContent=p.name;b.onclick=()=>{currentProfile=p.id;s.value=p.id;status('Profil sélectionné : '+p.name)};l.append(b)})}
-$('person').onchange=()=>currentProfile=$('person').value;
-$('newPerson').onclick=()=>{$('profileEditor').style.display='block';$('personName').value='';$('personNotes').value='';$('personName').focus()};
-$('cancelPerson').onclick=()=>$('profileEditor').style.display='none';
-$('savePerson').onclick=()=>{let name=$('personName').value.trim();if(!name)return status('Donne un nom au profil.',true);currentProfile=crypto.randomUUID?crypto.randomUUID():String(Date.now());profiles.push({id:currentProfile,name,notes:$('personNotes').value.trim()});save(K.profiles,profiles);renderProfiles();$('profileEditor').style.display='none';status('Profil créé.')};
-function renderHistory(){let root=$('historyList');root.innerHTML='';if(!saved.length){root.innerHTML='<div class="empty">Aucune analyse.</div>';return}saved.forEach(x=>{let row=document.createElement('div');row.className='history-item';let b=document.createElement('button');b.className='btn small history-open';let t=document.createElement('strong');t.textContent=x.title||'Analyse';let d=document.createElement('small');d.textContent=new Date(x.date).toLocaleString();b.append(t,d);b.onclick=()=>restore(x.id);let del=document.createElement('button');del.className='btn small';del.textContent='×';del.onclick=()=>{saved=saved.filter(y=>y.id!==x.id);save(K.hist,saved);renderHistory()};row.append(b,del);root.append(row)})}
-function restore(id){let x=saved.find(y=>y.id===id);if(!x)return;currentProfile=x.profileId||'';$('person').value=currentProfile;$('transcript').value=x.transcript||'';$('scanPanel').style.display=x.transcript?'block':'none';$('message').value=x.message||'';$('analysis').style.display=x.read?'block':'none';$('analysis').textContent=x.read?'Lecture : '+x.read+' · Ton : '+(x.tone||''):'';
-renderReplies(x.replies||[]);status('Analyse restaurée. Les images originales ne sont pas conservées.');window.scrollTo({top:0,behavior:'smooth'})}
-function addImagePreview(){let root=$('preview');root.innerHTML='';files.forEach(f=>{let im=document.createElement('img');im.alt='Aperçu capture';im.src=URL.createObjectURL(f);root.append(im)})}
-$('images').onchange=e=>{files=[...e.target.files].slice(0,3);if(e.target.files.length>3)status('Maximum 3 captures. Les premières ont été gardées.',true);for(let f of files)if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>8*1024*1024){status('Chaque capture doit être PNG/JPG/WEBP et faire moins de 8 Mo.',true);files=[];break}addImagePreview();$('scanPanel').style.display='none'};
-function readFile(f){return new Promise((resolve,reject)=>{let r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(f)})}
-async function callGroq(messages,{json=true,max=900,temperature=.2}={}){let body={model:$('model').value,messages,temperature,max_completion_tokens:max,top_p:1};if(json)body.response_format={type:'json_object'};let res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey()},body:JSON.stringify(body)});let data=await res.json();if(!res.ok)throw Error(data?.error?.message||'Erreur Groq HTTP '+res.status);let txt=data.choices?.[0]?.message?.content;if(!txt)throw Error('Réponse vide du modèle.');if(!json)return txt;try{return JSON.parse(txt)}catch(e){let m=txt.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw Error('Le modèle a renvoyé un format illisible. Réessaie.')} }
-$('scan').onclick=async()=>{if(!apiKey())return status('Ajoute ta clé API Groq.',true);if(!files.length)return status('Ajoute au moins une capture à scanner.',true);let b=$('scan');b.disabled=true;b.textContent='Scan en cours…';status('Lecture des bulles, des locuteurs et de l’ordre des messages…');$('scanPanel').style.display='none';
-try{let content=[{type:'text',text:'Transcribe these chat screenshots. Preserve exact visible text and order. Screenshots are supplied in chronological order if possible. Mark uncertainty; never guess.'}];for(let f of files)content.push({type:'image_url',image_url:{url:await readFile(f)}});let result=await callGroq([{role:'system',content:SCAN_SYSTEM},{role:'user',content}],{json:true,max:1400,temperature:0});if(!result.transcript)throw Error('Aucun texte de conversation lisible détecté. Essaie une capture plus nette.');$('transcript').value=result.transcript;$('scanMeta').textContent='Dernier message détecté ('+(result.latest_speaker||'locuteur incertain')+') : '+(result.latest_message||'non identifié')+'. '+(result.uncertain_parts?.length?'À vérifier : '+result.uncertain_parts.join(' · '):'Aucun passage signalé comme incertain.')+' '+(result.scan_note||'');$('scanPanel').style.display='block';$('message').value='';status('Scan terminé. Corrige le texte extrait avant de générer les réponses.');$('scanPanel').scrollIntoView({behavior:'smooth',block:'nearest'});}
-catch(e){status('Scan impossible : '+e.message,true)}finally{b.disabled=false;b.textContent='⌕ Scanner la conversation'}};
-function wordCount(s){return (s.trim().match(/\S+/g)||[]).length}
-function renderReplies(replies){let root=$('suggestions');root.innerHTML='';let labels=['Natural','Playful','Flirty','Confident','Warm'];let count=0;(replies||[]).slice(0,5).forEach((r,i)=>{let text=(r.text||'').trim();if(!text)return;let card=document.createElement('div');card.className='suggestion';let m=document.createElement('div');m.className='meta';m.textContent=(r.style||labels[i]||'OPTION').toUpperCase()+' · '+wordCount(text)+' MOTS';let p=document.createElement('p');p.textContent=text;let c=document.createElement('button');c.className='btn small';c.textContent='Copier';c.onclick=async()=>{try{await navigator.clipboard.writeText(text);status('Réponse copiée.')}catch{status('Copie indisponible dans ce navigateur.',true)}};card.append(m,p,c);root.append(card);count++});if(!count)status('Aucune réponse lisible reçue. Réessaie.',true)}
-async function generate(useTranscript){if(!apiKey())return status('Ajoute ta clé API Groq.',true);let transcript=useTranscript?$('transcript').value.trim():$('message').value.trim();if(!transcript)return status('Colle un message ou scanne une capture.',true);let profile=profiles.find(p=>p.id===currentProfile),extra=$('extraContext').value.trim();let req={transcript,message:$('message').value.trim(),extra,profileId:currentProfile,goal:$('goal').value,mood,lang:$('language').value};lastReq=req;let b=$('quickGenerate');b.disabled=true;$('generate').disabled=true;$('regenerate').disabled=true;status('WING prépare cinq réponses courtes…');
-try{let past=saved.filter(x=>x.profileId===currentProfile).slice(0,2).map(x=>'Previous context: '+(x.transcript||x.message||'')).join('\n');let prompt=`OUTPUT LANGUAGE: ${LANG[req.lang]}. User style: ${MOOD[req.mood]}. Goal: ${req.goal}. CONVERSATION TRANSCRIPT (user-corrected if screenshot scanned):\n${transcript}\nUSER CONTEXT: ${extra||'None supplied.'}\nPROFILE NOTES: ${profile?profile.name+'. '+profile.notes:'None.'}\nRECENT CONTEXT: ${past||'None.'}\nGenerate five distinct ready-to-send options. Each must be 4–12 words when possible and never exceed 14 words. One sentence max. Refer to a real detail in the transcript. No long explanation. If the screenshot scan has ambiguous speakers, mention uncertainty briefly in the read field.`;
-let result=await callGroq([{role:'system',content:REPLY_SYSTEM},{role:'user',content:prompt}],{json:true,max:750,temperature:.75});let replies=(result.replies||[]).slice(0,5).map(x=>({style:x.style||'Option',text:(x.text||'').trim()})).filter(x=>x.text);if(!replies.length)throw Error('Aucune suggestion générée. Réessaie.');replies=replies.map(x=>{if(wordCount(x.text)>14){let words=x.text.split(/\s+/);x.text=words.slice(0,14).join(' ').replace(/[,:;]$/,'')}return x});$('analysis').style.display='block';$('analysis').innerHTML='';let a=document.createElement('div');a.className='mini';a.textContent='LECTURE : '+(result.read||'')+' · TON : '+(result.tone||'')+' · PROCHAINE ÉTAPE : '+(result.next_move||'');$('analysis').append(a);renderReplies(replies);
-let item={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date:new Date().toISOString(),profileId:currentProfile,title:(transcript||'Conversation').slice(0,65),transcript,message:req.message,read:result.read,tone:result.tone,replies};saved.unshift(item);saved=saved.slice(0,80);save(K.hist,saved);renderHistory();$('regenerate').disabled=false;status('Terminé. Les propositions sont courtes : choisis celle qui te ressemble.');}
-catch(e){status('Génération impossible : '+e.message,true)}finally{b.disabled=false;$('generate').disabled=false}}
-$('generate').onclick=()=>generate(true);$('quickGenerate').onclick=()=>generate(false);$('regenerate').onclick=()=>{if(!lastReq)return;generate(!!lastReq.transcript&&$('scanPanel').style.display!=='none')};
-$('clear').onclick=()=>{files=[];$('images').value='';$('preview').innerHTML='';$('message').value='';$('transcript').value='';$('extraContext').value='';$('scanPanel').style.display='none';$('analysis').style.display='none';$('suggestions').innerHTML='';lastReq=null;$('regenerate').disabled=true;status('Champs effacés. L’historique sauvegardé reste disponible.')};
-$('deleteHistory').onclick=()=>{if(confirm('Effacer tout l’historique ?')){saved=[];save(K.hist,saved);renderHistory();status('Historique supprimé.')}};
-$('deleteAll').onclick=()=>{if(!confirm('Effacer la clé, les profils et l’historique sur cet appareil ?'))return;[K.key,K.hist,K.profiles].forEach(x=>localStorage.removeItem(x));saved=[];profiles=[];currentProfile='';$('apiKey').value='';renderHistory();renderProfiles();connection();status('Données locales supprimées.')};
-$('voice').onclick=()=>{let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('voiceStatus').textContent='Dictée non disponible dans ce navigateur.';return}if(recognition){recognition.stop();recognition=null;return}recognition=new SR();recognition.lang=({fr:'fr-FR',en:'en-US',ht:'fr-FR',es:'es-ES',pt:'pt-BR'})[$('language').value];recognition.interimResults=true;recognition.continuous=false;recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;$('message').value+=($('message').value?' ':'')+t};recognition.onerror=()=>{$('voiceStatus').textContent='Micro non autorisé ou dictée indisponible.'};recognition.onend=()=>{$('voiceStatus').textContent='Dictée terminée.';recognition=null};recognition.start();$('voiceStatus').textContent='Écoute…'};
-$('message').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')generate(false)});
-renderHistory();renderProfiles();
+(() => {
+"use strict";
+
+const $ = id => document.getElementById(id);
+const API = "https://api.groq.com/openai/v1/chat/completions";
+const KEY = "wing_api_key";
+const HISTORY = "wing_history";
+
+let mood = "playful";
+let images = [];
+let history = [];
+
+try {
+ history = JSON.parse(localStorage.getItem(HISTORY) || "[]");
+ if (!Array.isArray(history)) history = [];
+} catch { history = []; }
+
+const languages = {
+ fr:"French (français)",
+ en:"English",
+ ht:"Haitian Creole (Kreyòl ayisyen)",
+ es:"Spanish",
+ pt:"Portuguese"
+};
+
+const moods = {
+ playful:"taquin, spontané et légèrement provocateur",
+ natural:"naturel, fluide et subtil",
+ confident:"confiant, direct et respectueux",
+ funny:"drôle, vif et intelligent",
+ soft:"chaleureux, attentionné et sincère"
+};
+
+function setStatus(message,error=false) {
+ $("status").textContent = message;
+ $("status").className = error ? "status error" : "status";
+}
+
+function getKey() {
+ return $("apiKey").value.trim() || localStorage.getItem(KEY) || "";
+}
+
+$("apiKey").value = localStorage.getItem(KEY) || "";
+
+$("saveKey").onclick = () => {
+ const key = $("apiKey").value.trim();
+ if (!key) return setStatus("Ajoute ta clé API Groq.",true);
+ localStorage.setItem(KEY,key);
+ setStatus("Clé enregistrée.");
+};
+
+$("showKey").onclick = () => {
+ $("apiKey").type = $("apiKey").type === "password" ? "text" : "password";
+ $("showKey").textContent = $("apiKey").type === "password" ? "Voir" : "Masquer";
+};
+
+$("deleteKey").onclick = () => {
+ localStorage.removeItem(KEY);
+ $("apiKey").value = "";
+ setStatus("Clé API retirée.");
+};
+
+$("moods").addEventListener("click",event => {
+ const button = event.target.closest("[data-mood]");
+ if (!button) return;
+ mood = button.dataset.mood;
+ document.querySelectorAll(".mood").forEach(b => {
+  b.classList.toggle("active",b === button);
+ });
+});
+
+$("images").addEventListener("change",event => {
+ images = Array.from(event.target.files).slice(0,3);
+
+ if (event.target.files.length > 3) {
+  setStatus("Maximum 3 captures.",true);
+ }
+
+ for (const file of images) {
+  if (!["image/jpeg","image/png","image/webp"].includes(file.type) ||
+      file.size > 8 * 1024 * 1024) {
+   images = [];
+   $("preview").innerHTML = "";
+   setStatus("Format non accepté ou image supérieure à 8 Mo.",true);
+   return;
+  }
+ }
+
+ $("preview").innerHTML = "";
+
+ images.forEach(file => {
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(file);
+  $("preview").appendChild(img);
+ });
+});
+
+function fileToBase64(file) {
+ return new Promise((resolve,reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+ });
+}
+
+async function groq(messages,maxTokens=1000,temperature=0.3) {
+ const key = getKey();
+ if (!key) throw new Error("Ajoute ta clé API Groq.");
+
+ const response = await fetch(API,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json",
+   "Authorization":"Bearer " + key
+  },
+  body:JSON.stringify({
+   model:$("model").value,
+   messages,
+   temperature,
+   max_completion_tokens:maxTokens,
+   response_format:{type:"json_object"}
+  })
+ });
+
+ const data = await response.json();
+
+ if (!response.ok) {
+  throw new Error(data.error?.message || "Erreur API : " + response.status);
+ }
+
+ const content = data.choices?.[0]?.message?.content;
+ if (!content) throw new Error("Réponse vide du modèle.");
+
+ try {
+  return JSON.parse(content);
+ } catch {
+  const match = content.match(/\{[\s\S]*\}/);
+  if (match) return JSON.parse(match[0]);
+  throw new Error("Réponse IA illisible. Réessaie.");
+ }
+}
+
+$("scan").onclick = async () => {
+ if (!getKey()) return setStatus("Ajoute ta clé Groq.",true);
+ if (!images.length) return setStatus("Ajoute une capture d'écran.",true);
+
+ const button = $("scan");
+ button.disabled = true;
+ button.textContent = "Analyse en cours...";
+ $("scanPanel").hidden = true;
+ setStatus("Lecture des messages...");
+
+ try {
+  const content = [{
+   type:"text",
+   text:"Read these conversation screenshots. Transcribe all visible messages exactly, preserve chronological order, identify speakers only when clear. Never invent unreadable text. Mark uncertain parts as [UNCLEAR]. Return JSON only."
+  }];
+
+  for (const file of images) {
+   content.push({
+    type:"image_url",
+    image_url:{url:await fileToBase64(file)}
+   });
+  }
+
+  const result = await groq([
+   {
+    role:"system",
+    content:`You are a precise screenshot transcription engine. Do not generate replies. Return JSON with keys transcript, latest_message, latest_speaker, uncertain_parts, scan_note. Never guess unreadable text.`
+   },
+   {role:"user",content}
+  ],1400,0);
+
+  if (!result.transcript) {
+   throw new Error("Aucun message détecté. Essaie une capture plus nette.");
+  }
+
+  $("transcript").value = result.transcript;
+
+  $("scanInfo").textContent =
+   "Dernier message : " + (result.latest_message || "non identifié") +
+   " | Locuteur : " + (result.latest_speaker || "incertain") +
+   " | " + (result.scan_note || "") +
+   (result.uncertain_parts?.length ?
+    " | À vérifier : " + result.uncertain_parts.join(", ") : "");
+
+  $("scanPanel").hidden = false;
+  setStatus("Scan terminé. Vérifie le texte avant de générer.");
+  $("scanPanel").scrollIntoView({behavior:"smooth",block:"nearest"});
+
+ } catch(error) {
+  setStatus("Erreur du scan : " + error.message,true);
+ } finally {
+  button.disabled = false;
+  button.textContent = "⌕ Scanner les captures";
+ }
+};
+
+function wordCount(text) {
+ return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function displayReplies(data) {
+ $("results").innerHTML = "";
+ $("analysis").hidden = false;
+
+ $("analysis").textContent =
+  "LECTURE : " + (data.read || "Contexte analysé.") +
+  " | TON : " + (data.tone || "Non précisé") +
+  " | CONSEIL : " + (data.next_move || "");
+
+ const replies = Array.isArray(data.replies) ? data.replies.slice(0,5) : [];
+
+ replies.forEach((reply,index) => {
+  let text = String(reply.text || "").trim();
+  if (!text) return;
+
+  const words = text.split(/\s+/);
+  if (words.length > 14) text = words.slice(0,14).join(" ");
+
+  const card = document.createElement("div");
+  card.className = "reply";
+
+  const label = document.createElement("small");
+  label.textContent = (reply.style || "OPTION " + (index+1)).toUpperCase()
+   + " · " + wordCount(text) + " MOTS";
+
+  const p = document.createElement("p");
+  p.textContent = text;
+
+  const copy = document.createElement("button");
+  copy.className = "btn small";
+  copy.textContent = "Copier la réponse";
+
+  copy.onclick = async () => {
+   try {
+    await navigator.clipboard.writeText(text);
+    setStatus("Réponse copiée.");
+   } catch {
+    setStatus("Copie indisponible dans ce navigateur.",true);
+   }
+  };
+
+  card.append(label,p,copy);
+  $("results").appendChild(card);
+ });
+
+ if (!replies.length) setStatus("Aucune réponse reçue. Réessaie.",true);
+}
+
+async function generate(transcript,extraContext="") {
+ if (!getKey()) return setStatus("Ajoute ta clé API Groq.",true);
+ if (!transcript.trim()) return setStatus("Ajoute un message ou scanne une capture.",true);
+
+ const button = $("generate");
+ button.disabled = true;
+ $("generateScan").disabled = true;
+ setStatus("WING prépare tes réponses...");
+
+ const language = languages[$("language").value] || languages.fr;
+ const goal = $("goal").value;
+
+ const system = `
+You are WING, a socially intelligent texting assistant.
+Analyze the real conversation and suggest natural responses.
+Never invent facts, emotions, or shared experiences.
+Never use manipulation, pressure, guilt, or deception.
+Respect boundaries and rejection.
+Use the user's requested language.
+The user's preferred style is: ${moods[mood]}.
+Goal: ${goal}.
+Keep each reply ideally between 4 and 12 words.
+Never exceed 14 words.
+Use one sentence maximum.
+Create five genuinely different options.
+No generic pickup lines. No long explanations.
+Return JSON only:
+{
+ "read":"short description of the real situation",
+ "tone":"short tone label",
+ "next_move":"short advice",
+ "replies":[
+  {"style":"Natural","text":"..."},
+  {"style":"Playful","text":"..."},
+  {"style":"Flirty","text":"..."},
+  {"style":"Confident","text":"..."},
+  {"style":"Warm","text":"..."}
+ ]
+}`;
+
+ const prompt = `
+OUTPUT LANGUAGE: ${language}
+
+CONVERSATION:
+${transcript}
+
+ADDITIONAL CONTEXT:
+${extraContext || "None provided."}
+
+Generate five short, realistic, ready-to-send replies.
+Use actual details from the conversation.
+If the context is unclear, be cautious.
+`;
+
+ try {
+  const result = await groq([
+   {role:"system",content:system},
+   {role:"user",content:prompt}
+  ],900,0.7);
+
+  displayReplies(result);
+
+  const entry = {
+   date:new Date().toLocaleString(),
+   message:transcript.slice(0,90),
+   replies:result.replies || []
+  };
+
+  history.unshift(entry);
+  history = history.slice(0,60);
+
+  localStorage.setItem(HISTORY,JSON.stringify(history));
+  renderHistory();
+
+  setStatus("Terminé. Choisis la réponse qui te ressemble.");
+
+ } catch(error) {
+  setStatus("Erreur : " + error.message,true);
+ } finally {
+  button.disabled = false;
+  $("generateScan").disabled = false;
+ }
+}
+
+$("generate").onclick = () => {
+ generate($("message").value);
+};
+
+$("generateScan").onclick = () => {
+ generate($("transcript").value,$("context").value);
+};
+
+function renderHistory() {
+ const root = $("history");
+ root.innerHTML = "";
+
+ if (!history.length) {
+  root.textContent = "Aucune conversation enregistrée.";
+  return;
+ }
+
+ history.forEach(item => {
+  const button = document.createElement("button");
+  button.className = "btn small";
+  button.textContent = item.message + " · " + item.date;
+
+  button.onclick = () => {
+   $("message").value = item.message;
+   setStatus("Ancienne conversation sélectionnée.");
+  };
+
+  root.appendChild(button);
+ });
+}
+
+$("deleteHistory").onclick = () => {
+ history = [];
+ localStorage.removeItem(HISTORY);
+ renderHistory();
+ setStatus("Historique supprimé.");
+};
+
+$("clear").onclick = () => {
+ images = [];
+ $("images").value = "";
+ $("preview").innerHTML = "";
+ $("transcript").value = "";
+ $("context").value = "";
+ $("message").value = "";
+ $("scanPanel").hidden = true;
+ $("analysis").hidden = true;
+ $("results").innerHTML = "";
+ setStatus("Champs effacés.");
+};
+
+renderHistory();
+
 })();
 </script>
 </body>
