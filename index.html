@@ -29,8 +29,6 @@ button:disabled{opacity:.5}
 .row{display:flex;gap:8px;align-items:center}
 .row>*{min-width:0}
 .row input{flex:1}
-.moods{display:flex;gap:7px;flex-wrap:wrap}
-.mood.active{border-color:var(--pink);color:#ff9ec4;background:#ff5c9a18}
 .small{font-size:11px}
 #preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 #preview img{width:75px;height:90px;object-fit:cover;border-radius:9px}
@@ -52,7 +50,7 @@ button:disabled{opacity:.5}
 <main>
 <header>
  <div><div class="logo">WING<span>.</span></div><div class="tag">ELITE CONVERSATION INTELLIGENCE</div></div>
- <span class="tag">V7 · ELITE</span>
+ <span class="tag">V7 · ONE REPLY</span>
 </header>
 
 <div>
@@ -86,16 +84,6 @@ button:disabled{opacity:.5}
   <option value="es">Español</option>
   <option value="pt">Português</option>
  </select>
-
- <label>TON STYLE</label>
- <div class="moods" id="moods">
-  <button class="mood active" data-mood="playful">😏 Taquin</button>
-  <button class="mood" data-mood="smooth">✨ Naturel</button>
-  <button class="mood" data-mood="confident">🔥 Confiant</button>
-  <button class="mood" data-mood="funny">😂 Drôle</button>
-  <button class="mood" data-mood="soft">🤍 Attentionné</button>
- </div>
-
  <label>OBJECTIF</label>
  <select id="goal">
   <option value="reply">Répondre à son message</option>
@@ -103,16 +91,6 @@ button:disabled{opacity:.5}
   <option value="restart">Relancer une conversation froide</option>
   <option value="date">Proposer un rendez-vous</option>
   <option value="understand">Comprendre son message</option>
- </select>
-
- <label>STRATÉGIE</label>
- <select id="strategy">
-  <option value="balanced">Équilibrée</option>
-  <option value="curiosity">Curiosité et mystère</option>
-  <option value="banter">Teasing et répartie</option>
-  <option value="flirt">Flirt subtil</option>
-  <option value="connection">Créer une connexion</option>
-  <option value="date">Transition vers un rendez-vous</option>
  </select>
 </section>
 
@@ -122,14 +100,13 @@ button:disabled{opacity:.5}
  <input id="images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
  <div id="preview"></div>
  <button class="primary" id="scan" style="width:100%;margin-top:12px">⌕ Scanner les captures</button>
-
  <div id="scanPanel">
   <label>TEXTE EXTRAIT — VÉRIFIE AVANT DE CONTINUER</label>
   <div id="scanMeta" class="muted"></div>
   <textarea id="transcript"></textarea>
   <label>CONTEXTE SUPPLÉMENTAIRE</label>
   <textarea id="context" placeholder="Ex : on se parle depuis deux jours, elle aime plaisanter..."></textarea>
-  <button class="primary" id="generateScan" style="width:100%">Générer les réponses</button>
+  <button class="primary" id="generateScan" style="width:100%">Trouver le meilleur message</button>
  </div>
 </section>
 
@@ -138,7 +115,7 @@ button:disabled{opacity:.5}
  <textarea id="message" placeholder="Colle son dernier message ici..."></textarea>
  <label>CONTEXTE (FACULTATIF)</label>
  <textarea id="directContext" placeholder="Que s'est-il passé avant ce message ?"></textarea>
- <button class="primary" id="generateDirect" style="width:100%;margin-top:10px">Générer 5 réponses</button>
+ <button class="primary" id="generateDirect" style="width:100%;margin-top:10px">Trouver le meilleur message</button>
  <div class="status" id="status"></div>
 </section>
 
@@ -172,18 +149,9 @@ const LANG={
  es:"Spanish",
  pt:"Portuguese"
 };
-const MOODS={
- playful:"playful, witty, lightly teasing",
- smooth:"natural, smooth and subtle",
- confident:"confident, direct, never arrogant",
- funny:"funny, clever and spontaneous",
- soft:"warm, attentive and sincere"
-};
 
-let mood="playful";
 let files=[];
 let history=read("wing_elite_history",[]);
-let lastTranscript="";
 
 function read(key,def){
  try{return JSON.parse(localStorage.getItem(key))??def}
@@ -215,13 +183,6 @@ $("deleteKey").onclick=()=>{
  localStorage.removeItem("wing_elite_key");
  $("apiKey").value="";
  status("Clé supprimée.");
-};
-
-$("moods").onclick=e=>{
- const b=e.target.closest("[data-mood]");
- if(!b)return;
- mood=b.dataset.mood;
- document.querySelectorAll(".mood").forEach(x=>x.classList.toggle("active",x===b));
 };
 
 $("images").onchange=e=>{
@@ -270,7 +231,6 @@ Return ONLY JSON:
 $("scan").onclick=async()=>{
  if(!key())return status("Ajoute ta clé Groq.",true);
  if(!files.length)return status("Ajoute une capture.",true);
-
  const b=$("scan");
  b.disabled=true;
  status("Analyse des captures en cours...");
@@ -279,14 +239,11 @@ $("scan").onclick=async()=>{
   for(const f of files){
    content.push({type:"image_url",image_url:{url:await readImage(f)}});
   }
-
   const data=await callAI([
    {role:"system",content:SCAN_SYSTEM},
    {role:"user",content}
   ],0.1,1200);
-
   if(!data.transcript)throw Error("Aucun texte détecté.");
-  lastTranscript=data.transcript;
   $("transcript").value=data.transcript;
   $("scanMeta").textContent=
    "Dernier message ("+(data.latest_speaker||"inconnu")+") : "+
@@ -303,98 +260,34 @@ $("scan").onclick=async()=>{
 };
 
 const REPLY_SYSTEM=`
-You are WING ELITE, an advanced AI dating and conversation strategist.
+You are WING ELITE, an expert dating and conversation strategist.
+Read the full conversation and produce exactly ONE best possible reply.
 
-MISSION:
-Help the user communicate with confidence, humor, emotional intelligence and genuine attraction.
-Never sound like a generic pickup-line generator.
+AUTONOMOUS DECISION:
+- You alone detect the most suitable tone: natural, playful, teasing, funny, confident, warm, subtly flirty, curious, or sincere.
+- You alone choose the best conversational move. Never ask the user to choose a tone or strategy.
+- Do not default to flirting. Match her energy and the actual relationship.
+- If she is disengaged, do not chase or force chemistry. If sincerity is best, be sincere.
+- Consider chronology, speakers, unanswered questions, callbacks, humor and conversational energy.
 
-SIX CORE PRINCIPLES:
+QUALITY:
+- Sound like a real person texting, never a pickup-line generator.
+- Be concise, specific, spontaneous and context-aware; usually 4-14 words, one sentence.
+- Use natural contemporary American slang when English is requested.
+- Never invent facts, feelings, shared experiences or intentions.
+- No guilt, jealousy, pressure, manipulation or insults.
+- Move the conversation forward naturally.
 
-1. CURIOSITY:
-Create natural curiosity through interesting observations, playful ambiguity and unexpected angles.
-Never force artificial mystery.
-
-2. TEASING:
-Use intelligent, light teasing.
-Playfully challenge her words when appropriate.
-Make her smile, never humiliate her.
-
-3. SUBTLE FLIRTING:
-Show attraction without excessive compliments.
-Use confidence, humor and subtle hints.
-Avoid sounding desperate.
-
-4. EMOTIONAL TENSION:
-Build anticipation through callbacks, playful exchanges and timing.
-Create chemistry gradually.
-Never use guilt, jealousy or emotional pressure.
-
-5. MYSTERY:
-Avoid explaining every thought.
-Leave room for curiosity.
-Never fabricate experiences, secrets or achievements.
-
-6. PLAYFUL REVERSAL:
-When she teases the user, look for an unexpected comeback.
-Use witty reframing and confident humor.
-Do not force a comeback when sincerity is better.
-
-CONVERSATION INTELLIGENCE:
-Read the entire conversation.
-Identify who said each message.
-Understand chronology and the latest speaker.
-Remember callbacks, jokes and unanswered questions.
-Observe her humor, tone and conversational energy.
-
-INTEREST ANALYSIS:
-Look for observable signals:
-- Does she ask questions back?
-- Does she initiate?
-- Does she elaborate?
-- Does she tease playfully?
-- Does she contribute to the conversation?
-
-Distinguish engagement from short, neutral or disengaged replies.
-Never invent feelings or assign unsupported percentages.
-If evidence is insufficient, say so.
-
-STRATEGY:
-Choose between a playful comeback, curious follow-up, subtle flirt, genuine connection, topic change, low-pressure date invitation or giving her space.
-Never escalate automatically.
-
-AMERICAN ENGLISH:
-When requested, use natural contemporary American texting language.
-Use casual slang where appropriate.
-Never use textbook or robotic phrasing.
-
-MESSAGE RULES:
-Generate exactly five different options:
-Natural, Banter, Flirty, Confident, Smooth.
-Each should ideally contain 4-12 words and never exceed 14.
-One sentence maximum.
-Use actual conversation details.
-Avoid generic pickup lines.
-No explanations inside the messages.
-Never invent facts.
-Never use manipulative tactics.
-
-The best reply is not always the most flirtatious.
-Prioritize timing, context, chemistry and conversational flow.
+ANALYSIS:
+Briefly explain the observed dynamic, selected tone and why it fits. Do not claim certainty about her feelings; distinguish evidence from uncertainty.
 
 Return ONLY valid JSON:
 {
  "read":"Short factual conversation analysis",
- "tone":"Observable communication tone",
+ "tone":"Selected tone and why",
  "interest_signals":"Observable signs and uncertainty",
- "next_move":"Best next conversational move",
- "replies":[
-  {"style":"Natural","text":"..."},
-  {"style":"Banter","text":"..."},
-  {"style":"Flirty","text":"..."},
-  {"style":"Confident","text":"..."},
-  {"style":"Smooth","text":"..."}
- ]
+ "next_move":"Brief explanation of chosen move",
+ "best_reply":"Exactly one ready-to-send message"
 }
 `;
 
@@ -426,19 +319,15 @@ async function generate(transcript,context){
 
  const language=LANG[$("language").value];
  const goal=$("goal").value;
- const strategy=$("strategy").value;
- const style=MOODS[mood];
 
- status("WING ELITE analyse la conversation...");
+ status("WING analyse la conversation et choisit le meilleur ton...");
  $("results").innerHTML="";
  $("analysis").textContent="Analyse en cours...";
 
  try{
   const prompt=`
 OUTPUT LANGUAGE: ${language}
-USER STYLE: ${style}
-GOAL: ${goal}
-STRATEGY: ${strategy}
+USER GOAL: ${goal}
 
 CONVERSATION:
 ${transcript}
@@ -446,25 +335,22 @@ ${transcript}
 ADDITIONAL CONTEXT:
 ${context||"None provided."}
 
-Generate five short, distinct, context-aware replies.
-Use the entire conversation, not just the last line.
-Do not assume romantic interest without evidence.
+Analyze the full exchange. Independently select the most suitable tone and strategy.
+Return exactly ONE best ready-to-send reply. Do not provide alternatives.
 `;
 
   const result=await callAI([
    {role:"system",content:REPLY_SYSTEM},
    {role:"user",content:prompt}
-  ],.75,1100);
+  ],.7,900);
 
   $("analysis").innerHTML="";
-  const fields=[
+  [
    ["LECTURE",result.read],
-   ["TON",result.tone],
+   ["TON CHOISI PAR WING",result.tone],
    ["SIGNES D'INTÉRÊT",result.interest_signals],
    ["PROCHAINE ÉTAPE",result.next_move]
-  ];
-
-  fields.forEach(([label,value])=>{
+  ].forEach(([label,value])=>{
    const p=document.createElement("p");
    const strong=document.createElement("strong");
    strong.textContent=label+": ";
@@ -472,46 +358,46 @@ Do not assume romantic interest without evidence.
    $("analysis").append(p);
   });
 
-  const replies=result.replies||[];
-  if(!replies.length)throw Error("Aucune réponse générée.");
+  const text=(result.best_reply||"").trim();
+  if(!text)throw Error("WING n'a pas généré de message.");
 
-  replies.slice(0,5).forEach(reply=>{
-   let text=(reply.text||"").trim();
-   const words=text.split(/\s+/);
-   if(words.length>14)text=words.slice(0,14).join(" ");
+  const card=document.createElement("div");
+  card.className="result";
 
-   const card=document.createElement("div");
-   card.className="result";
-   const meta=document.createElement("div");
-   meta.className="meta";
-   meta.textContent=(reply.style||"OPTION").toUpperCase();
-   const p=document.createElement("p");
-   p.textContent=text;
-   const copy=document.createElement("button");
-   copy.textContent="Copier";
-   copy.onclick=async()=>{
-    try{
-     await navigator.clipboard.writeText(text);
-     status("Message copié.");
-    }catch{
-     status("Copie indisponible dans ce navigateur.",true);
-    }
-   };
-   card.append(meta,p,copy);
-   $("results").append(card);
-  });
+  const meta=document.createElement("div");
+  meta.className="meta";
+  meta.textContent="LE MEILLEUR MESSAGE · TON "+(result.tone||"ADAPTÉ").toUpperCase();
+
+  const p=document.createElement("p");
+  p.textContent=text;
+
+  const copy=document.createElement("button");
+  copy.className="primary";
+  copy.textContent="Copier le message";
+  copy.onclick=async()=>{
+   try{
+    await navigator.clipboard.writeText(text);
+    status("Message copié. À toi de jouer. 😏");
+   }catch{
+    status("Copie indisponible dans ce navigateur.",true);
+   }
+  };
+
+  card.append(meta,p,copy);
+  $("results").append(card);
 
   history.unshift({
    date:new Date().toLocaleString(),
    transcript,
    context,
    analysis:result,
-   replies
+   best_reply:text
   });
+
   history=history.slice(0,50);
   save("wing_elite_history",history);
   renderHistory();
-  status("Analyse terminée. Choisis ta meilleure réponse.");
+  status("Terminé. WING a choisi un seul message.");
  }catch(e){
   status("Erreur : "+e.message,true);
  }
@@ -520,6 +406,7 @@ Do not assume romantic interest without evidence.
 $("generateScan").onclick=()=>{
  generate($("transcript").value,$("context").value);
 };
+
 $("generateDirect").onclick=()=>{
  generate($("message").value,$("directContext").value);
 };
@@ -531,27 +418,54 @@ function renderHistory(){
   root.textContent="Aucune conversation enregistrée.";
   return;
  }
+
  history.forEach((item,index)=>{
   const row=document.createElement("div");
   row.className="historyItem";
+
   const open=document.createElement("button");
   open.textContent=item.date+" — "+item.transcript.slice(0,35);
+
   open.onclick=()=>{
    $("transcript").value=item.transcript;
    $("context").value=item.context||"";
    $("scanPanel").style.display="block";
    $("analysis").textContent=item.analysis.read||"";
    $("results").innerHTML="";
-   item.replies.forEach(reply=>{
+
+   const savedReply=item.best_reply||item.analysis?.best_reply;
+
+   if(savedReply){
     const card=document.createElement("div");
     card.className="result";
+
+    const meta=document.createElement("div");
+    meta.className="meta";
+    meta.textContent="LE MEILLEUR MESSAGE";
+
     const p=document.createElement("p");
-    p.textContent=reply.text;
-    card.append(p);
+    p.textContent=savedReply;
+
+    const copy=document.createElement("button");
+    copy.textContent="Copier le message";
+    copy.onclick=()=>navigator.clipboard.writeText(savedReply).then(()=>status("Message copié."));
+
+    card.append(meta,p,copy);
     $("results").append(card);
-   });
+   }else if(item.replies){
+    item.replies.slice(0,1).forEach(reply=>{
+     const card=document.createElement("div");
+     card.className="result";
+     const p=document.createElement("p");
+     p.textContent=reply.text;
+     card.append(p);
+     $("results").append(card);
+    });
+   }
+
    window.scrollTo({top:0,behavior:"smooth"});
   };
+
   const remove=document.createElement("button");
   remove.textContent="×";
   remove.onclick=()=>{
@@ -559,6 +473,7 @@ function renderHistory(){
    save("wing_elite_history",history);
    renderHistory();
   };
+
   row.append(open,remove);
   root.append(row);
  });
