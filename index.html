@@ -5,24 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WING ELITE — ONE REPLY</title>
-
 <style>
-:root{
- --bg:#0d0b15;
- --panel:#171422;
- --line:#302a40;
- --pink:#ff5c9a;
- --purple:#9d7cff;
- --text:#f8f5ff;
- --muted:#aaa2ba;
-}
+:root{--bg:#0d0b15;--panel:#171422;--line:#302a40;--pink:#ff5c9a;--purple:#9d7cff;--text:#f8f5ff;--muted:#aaa2ba}
 *{box-sizing:border-box}
-body{
- margin:0;
- background:radial-gradient(ellipse at top right,#32182f,transparent 40%),var(--bg);
- color:var(--text);
- font:15px Arial,sans-serif;
-}
+body{margin:0;background:radial-gradient(ellipse at top right,#32182f,transparent 40%),var(--bg);color:var(--text);font:15px Arial,sans-serif}
 main{max-width:900px;margin:auto;padding:22px 15px 60px}
 header{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px}
 .logo{font-size:25px;font-weight:900;letter-spacing:4px}
@@ -30,119 +16,60 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .tag{font-size:10px;color:var(--muted);letter-spacing:2px}
 h1{font-size:35px;margin:15px 0 5px}
 p{color:var(--muted);line-height:1.5}
-.panel{
- background:var(--panel);
- border:1px solid var(--line);
- border-radius:17px;
- padding:17px;
- margin:15px 0;
-}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:17px;margin:15px 0}
 h2{font-size:15px;margin:0 0 13px}
-label{
- display:block;
- color:var(--muted);
- font-size:10px;
- font-weight:bold;
- letter-spacing:1px;
- margin:14px 0 7px;
-}
-input,textarea,select{
- width:100%;
- background:#0e0c16;
- border:1px solid var(--line);
- border-radius:10px;
- color:white;
- padding:12px;
- outline:none;
-}
+label{display:block;color:var(--muted);font-size:10px;font-weight:bold;letter-spacing:1px;margin:14px 0 7px}
+input,textarea,select{width:100%;background:#0e0c16;border:1px solid var(--line);border-radius:10px;color:white;padding:12px;outline:none}
 textarea{min-height:100px;resize:vertical}
 input:focus,textarea:focus,select:focus{border-color:var(--purple)}
-button{
- cursor:pointer;
- border:1px solid var(--line);
- background:#282238;
- color:white;
- padding:10px 13px;
- border-radius:10px;
-}
-button.primary{
- background:linear-gradient(100deg,var(--pink),var(--purple));
- border:0;
- font-weight:bold;
-}
+button{cursor:pointer;border:1px solid var(--line);background:#282238;color:white;padding:10px 13px;border-radius:10px}
+button.primary{background:linear-gradient(100deg,var(--pink),var(--purple));border:0;font-weight:bold}
 button:disabled{opacity:.5;cursor:wait}
 .row{display:flex;gap:8px;align-items:center}
 .row>*{min-width:0}
 .row input{flex:1}
-.small{font-size:11px}
-.muted{font-size:11px;color:var(--muted)}
+.small,.muted{font-size:11px}
+.muted{color:var(--muted)}
 #preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 #preview img{width:75px;height:90px;object-fit:cover;border-radius:9px}
-#scanPanel{
- display:none;
- background:#100e19;
- padding:12px;
- border-radius:12px;
- margin-top:12px;
-}
+#scanPanel{display:none;background:#100e19;padding:12px;border-radius:12px;margin-top:12px}
 #scanPanel textarea{min-height:150px}
 .status{font-size:12px;color:var(--muted);margin-top:10px;min-height:20px}
 .error{color:#ff879e}
-.result{
- background:#100e19;
- border:1px solid var(--line);
- padding:16px;
- border-radius:12px;
- margin:12px 0;
-}
+.result{background:#100e19;border:1px solid var(--line);padding:16px;border-radius:12px;margin:12px 0}
 .result p{color:white;margin:12px 0;line-height:1.6;font-size:17px}
 .meta{font-size:10px;color:var(--pink);letter-spacing:1px}
 .historyItem{display:flex;gap:8px;margin:6px 0}
 .historyItem button:first-child{flex:1;text-align:left;overflow:hidden}
 .divider{height:1px;background:var(--line);margin:16px 0}
-@media(max-width:550px){
- h1{font-size:29px}
- .panel{padding:13px}
- .row{flex-wrap:wrap}
-}
+@media(max-width:550px){h1{font-size:29px}.panel{padding:13px}.row{flex-wrap:wrap}}
 </style>
 </head>
-
 <body>
 <main>
-
 <header>
  <div>
   <div class="logo">WING<span>.</span></div>
   <div class="tag">ELITE CONVERSATION INTELLIGENCE</div>
  </div>
- <span class="tag">V8 · ONE REPLY</span>
+ <span class="tag">V9 · ONE REPLY</span>
 </header>
 
 <div>
  <div class="tag">READ THE ENERGY. OWN THE CONVERSATION.</div>
  <h1>Don't just reply.<br><span>Build chemistry.</span></h1>
- <p>
-  WING analyse la conversation, détecte le meilleur ton
-  et choisit automatiquement le message le plus adapté.
- </p>
+ <p>WING comprend la conversation, observe les détails et choisit la meilleure réponse pour faire avancer l'échange.</p>
 </div>
 
 <section class="panel">
  <h2>⚙️ Connexion IA</h2>
-
  <label>GROQ API KEY</label>
  <div class="row">
   <input id="apiKey" type="password" placeholder="gsk_...">
   <button id="showKey">Voir</button>
   <button id="saveKey">Sauver</button>
  </div>
-
- <p class="muted">
-  La clé est conservée dans ton navigateur.
-  Ne publie jamais ta clé API dans un dépôt public.
- </p>
-
+ <p class="muted">La clé est conservée dans ton navigateur. Ne la publie jamais dans un dépôt public.</p>
  <label>MODÈLE IA</label>
  <select id="model">
   <option value="qwen/qwen3.8-27b">Qwen 3.8 27B · Vision + texte</option>
@@ -151,7 +78,6 @@ button:disabled{opacity:.5;cursor:wait}
 
 <section class="panel">
  <h2>🎯 Paramètres</h2>
-
  <label>LANGUE DES RÉPONSES</label>
  <select id="language">
   <option value="fr">Français</option>
@@ -160,7 +86,6 @@ button:disabled{opacity:.5;cursor:wait}
   <option value="es">Español</option>
   <option value="pt">Português</option>
  </select>
-
  <label>OBJECTIF</label>
  <select id="goal">
   <option value="reply">Répondre à son message</option>
@@ -173,43 +98,26 @@ button:disabled{opacity:.5;cursor:wait}
 
 <section class="panel">
  <h2>📸 Scanner une conversation</h2>
-
  <label>CAPTURES D'ÉCRAN (3 MAXIMUM)</label>
  <input id="images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
-
  <div id="preview"></div>
-
- <button class="primary" id="scan" style="width:100%;margin-top:12px">
-  ⌕ Scanner les captures
- </button>
-
+ <button class="primary" id="scan" style="width:100%;margin-top:12px">⌕ Scanner les captures</button>
  <div id="scanPanel">
   <label>TEXTE EXTRAIT — VÉRIFIE AVANT DE CONTINUER</label>
   <div id="scanMeta" class="muted"></div>
-
   <textarea id="transcript"></textarea>
-
   <label>CONTEXTE SUPPLÉMENTAIRE</label>
   <textarea id="context" placeholder="Ex : on se parle depuis deux jours, elle aime plaisanter..."></textarea>
-
-  <button class="primary" id="generateScan" style="width:100%">
-   Trouver le meilleur message
-  </button>
+  <button class="primary" id="generateScan" style="width:100%">Trouver le meilleur message</button>
  </div>
 </section>
 
 <section class="panel">
  <h2>💬 Ou colle directement son message</h2>
-
  <textarea id="message" placeholder="Colle son dernier message ici..."></textarea>
-
  <label>CONTEXTE (FACULTATIF)</label>
  <textarea id="directContext" placeholder="Que s'est-il passé avant ce message ?"></textarea>
-
- <button class="primary" id="generateDirect" style="width:100%;margin-top:10px">
-  Trouver le meilleur message
- </button>
-
+ <button class="primary" id="generateDirect" style="width:100%;margin-top:10px">Trouver le meilleur message</button>
  <div class="status" id="status"></div>
 </section>
 
@@ -222,19 +130,12 @@ button:disabled{opacity:.5;cursor:wait}
 <section class="panel">
  <h2>🕘 Historique</h2>
  <div id="history"></div>
-
  <button id="clearHistory" class="small">Effacer l'historique</button>
-
  <div class="divider"></div>
-
  <button id="deleteKey" class="small">Retirer la clé API</button>
 </section>
 
-<p class="muted">
- WING ELITE · Aucun message n'est envoyé automatiquement.
- Tu gardes toujours le contrôle.
-</p>
-
+<p class="muted">WING ELITE · Aucun message n'est envoyé automatiquement. Tu gardes toujours le contrôle.</p>
 </main>
 
 <script>
@@ -246,7 +147,7 @@ const API="https://api.groq.com/openai/v1/chat/completions";
 
 const LANG={
  fr:"French",
- en:"Natural contemporary American English with casual slang",
+ en:"Natural contemporary American English with casual American slang",
  ht:"Haitian Creole",
  es:"Spanish",
  pt:"Portuguese"
@@ -256,32 +157,24 @@ let files=[];
 let history=read("wing_elite_history",[]);
 
 function read(key,def){
- try{
-  return JSON.parse(localStorage.getItem(key))??def;
- }catch{
-  return def;
- }
+ try{return JSON.parse(localStorage.getItem(key))??def}
+ catch{return def}
 }
-
 function save(key,value){
  localStorage.setItem(key,JSON.stringify(value));
 }
-
 function status(msg,error=false){
  $("status").textContent=msg;
  $("status").className="status"+(error?" error":"");
 }
-
 function key(){
- return $("apiKey").value.trim()||
- localStorage.getItem("wing_elite_key")||"";
+ return $("apiKey").value.trim()||localStorage.getItem("wing_elite_key")||"";
 }
 
 $("apiKey").value=localStorage.getItem("wing_elite_key")||"";
 
 $("saveKey").onclick=()=>{
  if(!key())return status("Entre ta clé Groq.",true);
-
  localStorage.setItem("wing_elite_key",$("apiKey").value.trim());
  status("Clé enregistrée.");
 };
@@ -300,23 +193,17 @@ $("deleteKey").onclick=()=>{
 $("images").onchange=e=>{
  files=Array.from(e.target.files).slice(0,3);
  $("preview").innerHTML="";
-
  for(const f of files){
-  if(
-   !["image/jpeg","image/png","image/webp"].includes(f.type)||
-   f.size>8*1024*1024
-  ){
+  if(!["image/jpeg","image/png","image/webp"].includes(f.type)||f.size>8*1024*1024){
    files=[];
    $("images").value="";
    status("Image invalide ou supérieure à 8 Mo.",true);
    return;
   }
-
   const img=document.createElement("img");
   img.src=URL.createObjectURL(f);
   $("preview").append(img);
  }
-
  if(e.target.files.length>3)status("Maximum 3 images.");
 };
 
@@ -329,9 +216,19 @@ function readImage(file){
  });
 }
 
-const SCAN_SYSTEM=`
-You are a screenshot transcription engine.
+async function imageContent(){
+ const content=[];
+ for(const f of files){
+  content.push({
+   type:"image_url",
+   image_url:{url:await readImage(f)}
+  });
+ }
+ return content;
+}
 
+const SCAN_SYSTEM=`
+You are a careful screenshot transcription engine.
 Read only text actually visible in the screenshots.
 Preserve exact wording, language, emojis, punctuation and chronology.
 Identify speakers as ME, THEM or UNKNOWN only when visually supported.
@@ -355,20 +252,14 @@ $("scan").onclick=async()=>{
 
  const b=$("scan");
  b.disabled=true;
- status("Analyse des captures en cours...");
+ status("Lecture des captures en cours...");
 
  try{
   const content=[{
    type:"text",
-   text:"Transcribe these screenshots carefully in chronological order."
+   text:"Transcribe these screenshots carefully in chronological order. Do not interpret or invent anything."
   }];
-
-  for(const f of files){
-   content.push({
-    type:"image_url",
-    image_url:{url:await readImage(f)}
-   });
-  }
+  content.push(...await imageContent());
 
   const data=await callAI([
    {role:"system",content:SCAN_SYSTEM},
@@ -378,7 +269,6 @@ $("scan").onclick=async()=>{
   if(!data.transcript)throw Error("Aucun texte détecté.");
 
   $("transcript").value=data.transcript;
-
   $("scanMeta").textContent=
    "Dernier message ("+(data.latest_speaker||"inconnu")+") : "+
    (data.latest_message||"non identifié")+
@@ -387,7 +277,6 @@ $("scan").onclick=async()=>{
 
   $("scanPanel").style.display="block";
   status("Scan terminé. Vérifie le texte avant de générer.");
-
  }catch(e){
   status("Erreur scan : "+e.message,true);
  }finally{
@@ -395,126 +284,119 @@ $("scan").onclick=async()=>{
  }
 };
 
-const REPLY_SYSTEM=`
-You are WING ELITE, an advanced AI dating and conversation strategist.
+const CANDIDATE_SYSTEM=`
+You are WING ELITE, a highly skilled dating conversation strategist.
 
-YOUR MISSION:
-Analyze the entire conversation and generate EXACTLY ONE best reply.
-You must make all strategic decisions autonomously.
+Your job is to understand the real conversational dynamic and privately create 5 genuinely different candidate replies.
 
-AUTONOMOUS TONE DETECTION:
-You decide which tone is best for this exact situation:
-- Natural
-- Playful
-- Witty
-- Light teasing
-- Subtle flirting
-- Confident
-- Funny
-- Warm
-- Sincere
-- Curious
-- Smooth
+IMPORTANT: The conversation may include screenshots, profile pictures, bios, prompts, and visual details. Inspect the images directly. Use relevant visible details when they genuinely help. Do not invent facts about people or assume personality from appearance.
 
-Never ask the user to choose a tone.
-Never provide multiple options.
-Never provide alternative messages.
+FIRST UNDERSTAND:
+- Who is speaking and in what order?
+- What was the last meaningful exchange?
+- What does her latest message mean in context?
+- Is she joking, teasing, flirting, curious, cautious, neutral, or disengaged?
+- What callbacks, jokes, details or unanswered questions can be reused?
+- What does the user actually want to achieve?
 
-CONVERSATION INTELLIGENCE:
-Read the entire conversation.
-Identify who said each message.
-Understand chronology and the latest speaker.
-Remember callbacks, jokes and unanswered questions.
-Observe her humor, tone and conversational energy.
-Understand whether the conversation is flowing naturally.
+THE WING STYLE:
+1. Curiosity: use interesting observations and natural openings.
+2. Playful teasing: challenge her words lightly when appropriate, never insult.
+3. Subtle flirting: show attraction without excessive compliments.
+4. Chemistry: build on shared jokes and genuine details.
+5. Mystery: do not explain every thought or manufacture fake secrets.
+6. Playful reversal: when she teases, consider an unexpected confident comeback.
+7. Confidence: no needy overexplaining or seeking approval.
+8. Naturalness: sound like a real person texting, not a pickup-line generator.
 
-SIX CORE PRINCIPLES:
+STRATEGY:
+Choose the move that fits the actual moment:
+- witty comeback
+- playful teasing
+- curious follow-up
+- subtle flirt
+- sincere connection
+- callback to something she said
+- topic change
+- direct but low-pressure invitation
+- give her space
 
-1. CURIOSITY:
-Create natural curiosity through interesting observations,
-playful ambiguity and unexpected angles.
-Never force artificial mystery.
+Do not flirt harder just because this is a dating app.
+Do not force a joke into a serious moment.
+Do not chase someone who is clearly disengaged.
+Do not use guilt, jealousy, pressure, deception or manipulation.
+Respect boundaries and signs of discomfort.
 
-2. TEASING:
-Use intelligent, light teasing.
-Playfully challenge her words when appropriate.
-Make her smile, never humiliate her.
+MESSAGE QUALITY:
+- Create 5 distinct candidate replies internally.
+- Make them meaningfully different in approach, not just synonyms.
+- Use details from the actual conversation or screenshots.
+- Avoid generic openers and canned pickup lines.
+- Do not impose a fixed word count.
+- A short reply is good when it feels natural; a longer one is fine when the moment needs it.
+- Do not add fake experiences, promises or personal facts.
+- Match the language and energy requested.
+- English must sound like natural contemporary American texting, with slang only when it fits.
+- Do not reveal the candidate list to the user.
 
-3. SUBTLE FLIRTING:
-Show attraction without excessive compliments.
-Use confidence, humor and subtle hints.
-Avoid sounding desperate.
-
-4. EMOTIONAL CONNECTION:
-Build chemistry through callbacks, playful exchanges
-and genuine interest.
-Never use guilt, jealousy or emotional pressure.
-
-5. MYSTERY:
-Avoid explaining every thought.
-Leave room for curiosity.
-Never fabricate experiences, secrets or achievements.
-
-6. PLAYFUL REVERSAL:
-When she teases the user, look for an unexpected comeback.
-Use witty reframing and confident humor.
-Do not force a comeback when sincerity is better.
-
-INTEREST ANALYSIS:
-Look for observable signals:
-- Does she ask questions back?
-- Does she initiate?
-- Does she elaborate?
-- Does she tease playfully?
-- Does she contribute to the conversation?
-
-Distinguish engagement from short, neutral or disengaged replies.
-Never invent feelings or assign unsupported percentages.
-If evidence is insufficient, say so.
-
-STRATEGY SELECTION:
-Choose the best move yourself:
-- Playful comeback
-- Curious follow-up
-- Subtle flirt
-- Genuine connection
-- Topic change
-- Low-pressure date invitation
-- Give her space
-
-Do not escalate automatically.
-The best reply is not always the most flirtatious.
-If she is disengaged, do not chase.
-If sincerity is better, be sincere.
-
-MESSAGE RULES:
-Generate exactly ONE message.
-Ideally 4-14 words.
-One sentence maximum whenever possible.
-Make it sound like a real person texting.
-Use actual conversation details.
-Avoid generic pickup lines.
-No explanations inside the message.
-Never invent facts.
-Never use manipulative tactics.
-
-AMERICAN ENGLISH:
-When English is requested, use natural contemporary American texting language.
-Use casual slang where appropriate.
-Never use textbook or robotic phrasing.
-
-OUTPUT:
 Return ONLY valid JSON:
 {
- "read":"Short factual conversation analysis",
- "tone":"The tone selected by WING and why",
- "interest_signals":"Observable signs and uncertainty",
- "next_move":"Brief explanation of the selected strategy",
- "best_reply":"Exactly one ready-to-send message"
+ "conversation_read":"Factual concise reading of the exchange",
+ "her_energy":"Observable engagement and uncertainty",
+ "best_strategy":"The strategy that seems most appropriate",
+ "candidates":[
+  {"style":"...","message":"..."},
+  {"style":"...","message":"..."},
+  {"style":"...","message":"..."},
+  {"style":"...","message":"..."},
+  {"style":"...","message":"..."}
+ ]
 }
 `;
 
-async function callAI(messages,temperature=.7,max=1000){
+const RANK_SYSTEM=`
+You are the final editor and quality judge for WING ELITE.
+
+You receive five candidate messages and the conversation context.
+Choose the SINGLE strongest reply.
+
+Evaluate each candidate privately on:
+- Relevance to her actual latest message
+- Specificity and use of real conversation details
+- Natural human texting quality
+- Confidence without arrogance
+- Playfulness and chemistry when appropriate
+- Whether it gives her an easy and genuine way to respond
+- Whether it advances the user's goal without forcing anything
+- Whether it respects her boundaries and current energy
+
+Reject:
+- Generic pickup lines
+- Forced jokes and artificial mystery
+- Repetitive questions
+- Excessive compliments
+- Neediness or overexplaining
+- Manipulation, guilt, jealousy or pressure
+- Replies that ignore the actual conversation
+- Replies that sound like AI
+
+The best reply is not automatically the funniest or most flirtatious.
+Sometimes the best answer is sincere, simple, direct, or gives her space.
+Do not invent interest or feelings.
+Do not assign interest percentages.
+Do not expose the candidate list or your scoring process.
+
+Return ONLY valid JSON:
+{
+ "read":"Short factual conversation analysis",
+ "tone":"Selected tone and brief reason",
+ "interest_signals":"Observable signs and uncertainty",
+ "next_move":"Brief explanation of the chosen strategy",
+ "best_reply":"One ready-to-send message"
+}
+`;
+
+async function callAI(messages,temperature=.7,max=1200){
  const response=await fetch(API,{
   method:"POST",
   headers:{
@@ -531,33 +413,69 @@ async function callAI(messages,temperature=.7,max=1000){
  });
 
  const data=await response.json();
-
- if(!response.ok){
-  throw Error(data.error?.message||"Erreur API "+response.status);
- }
+ if(!response.ok)throw Error(data.error?.message||"Erreur API "+response.status);
 
  const answer=data.choices?.[0]?.message?.content;
-
  if(!answer)throw Error("Réponse vide.");
 
- return JSON.parse(answer);
+ try{return JSON.parse(answer)}
+ catch{throw Error("Réponse IA invalide. Réessaie.")}
 }
 
-async function generate(transcript,context){
+async function generate(transcript,context,includeImages=false){
  if(!key())return status("Ajoute ta clé API Groq.",true);
  if(!transcript.trim())return status("Ajoute une conversation.",true);
 
  const language=LANG[$("language").value];
  const goal=$("goal").value;
+ const b=includeImages?$("generateScan"):$("generateDirect");
 
- status("WING analyse la conversation et choisit le meilleur ton...");
+ b.disabled=true;
+ status("WING étudie la conversation et cherche la meilleure approche...");
  $("results").innerHTML="";
  $("analysis").textContent="Analyse en cours...";
 
  try{
   const prompt=`
 OUTPUT LANGUAGE: ${language}
+USER GOAL: ${goal}
 
+FULL CONVERSATION:
+${transcript}
+
+ADDITIONAL CONTEXT:
+${context||"None provided."}
+
+Study the complete exchange, not just the last message.
+If images are attached, inspect them directly. They may contain profile photos, bios, prompts, chat details, reactions or other context.
+Use visible details only when relevant and clearly supported.
+Do not infer identity, personality or feelings from appearance.
+
+Create five genuinely different possible replies.
+Return the candidate JSON requested.
+`;
+
+  const userContent=[{type:"text",text:prompt}];
+
+  // Critical: the original screenshots are sent to the reply model too.
+  // The model can inspect visual context while choosing the reply.
+  if(includeImages&&files.length){
+   userContent.push(...await imageContent());
+  }
+
+  const candidates=await callAI([
+   {role:"system",content:CANDIDATE_SYSTEM},
+   {role:"user",content:userContent}
+  ],0.85,1800);
+
+  if(!Array.isArray(candidates.candidates)||!candidates.candidates.length){
+   throw Error("WING n'a pas pu créer ses réponses candidates.");
+  }
+
+  status("WING compare les réponses et sélectionne la plus naturelle...");
+
+  const rankingPrompt=`
+OUTPUT LANGUAGE: ${language}
 USER GOAL: ${goal}
 
 CONVERSATION:
@@ -566,44 +484,44 @@ ${transcript}
 ADDITIONAL CONTEXT:
 ${context||"None provided."}
 
-Analyze the entire exchange.
-Identify the conversational dynamic.
-Independently choose the best tone and strategy.
-Generate EXACTLY ONE best ready-to-send reply.
-Do not provide alternatives.
-Do not ask the user to choose a tone.
+INITIAL CONVERSATION READING:
+${candidates.conversation_read||""}
+
+OBSERVED ENERGY:
+${candidates.her_energy||""}
+
+PROPOSED STRATEGY:
+${candidates.best_strategy||""}
+
+FIVE PRIVATE CANDIDATES:
+${JSON.stringify(candidates.candidates)}
+
+Select the strongest single reply. Improve it slightly if necessary, without changing its natural voice.
+Return the final JSON only.
 `;
 
   const result=await callAI([
-   {role:"system",content:REPLY_SYSTEM},
-   {role:"user",content:prompt}
-  ],0.7,900);
+   {role:"system",content:RANK_SYSTEM},
+   {role:"user",content:rankingPrompt}
+  ],0.45,1000);
 
   $("analysis").innerHTML="";
-
   const fields=[
    ["LECTURE",result.read],
+   ["ÉNERGIE OBSERVÉE",result.interest_signals],
    ["TON CHOISI PAR WING",result.tone],
-   ["SIGNES D'INTÉRÊT",result.interest_signals],
    ["PROCHAINE ÉTAPE",result.next_move]
   ];
 
   fields.forEach(([label,value])=>{
    const p=document.createElement("p");
    const strong=document.createElement("strong");
-
    strong.textContent=label+": ";
-
-   p.append(
-    strong,
-    document.createTextNode(value||"Non déterminé")
-   );
-
+   p.append(strong,document.createTextNode(value||"Non déterminé"));
    $("analysis").append(p);
   });
 
   const text=(result.best_reply||"").trim();
-
   if(!text)throw Error("WING n'a pas généré de message.");
 
   const card=document.createElement("div");
@@ -611,7 +529,7 @@ Do not ask the user to choose a tone.
 
   const meta=document.createElement("div");
   meta.className="meta";
-  meta.textContent="LE MEILLEUR MESSAGE · TON "+(result.tone||"ADAPTÉ").toUpperCase();
+  meta.textContent="LE MEILLEUR MESSAGE · "+(result.tone||"TON ADAPTÉ").toUpperCase();
 
   const p=document.createElement("p");
   p.textContent=text;
@@ -619,7 +537,6 @@ Do not ask the user to choose a tone.
   const copy=document.createElement("button");
   copy.className="primary";
   copy.textContent="Copier le message";
-
   copy.onclick=async()=>{
    try{
     await navigator.clipboard.writeText(text);
@@ -645,19 +562,66 @@ Do not ask the user to choose a tone.
   renderHistory();
 
   status("Terminé. WING a choisi un seul message.");
-
  }catch(e){
   status("Erreur : "+e.message,true);
+ }finally{
+  b.disabled=false;
  }
 }
 
 $("generateScan").onclick=()=>{
- generate($("transcript").value,$("context").value);
+ generate($("transcript").value,$("context").value,true);
 };
 
 $("generateDirect").onclick=()=>{
- generate($("message").value,$("directContext").value);
+ generate($("message").value,$("directContext").value,false);
 };
+
+function showAnalysis(analysis){
+ $("analysis").innerHTML="";
+ [
+  ["LECTURE",analysis.read],
+  ["ÉNERGIE OBSERVÉE",analysis.interest_signals],
+  ["TON CHOISI PAR WING",analysis.tone],
+  ["PROCHAINE ÉTAPE",analysis.next_move]
+ ].forEach(([label,value])=>{
+  const p=document.createElement("p");
+  const strong=document.createElement("strong");
+  strong.textContent=label+": ";
+  p.append(strong,document.createTextNode(value||"Non déterminé"));
+  $("analysis").append(p);
+ });
+}
+
+function showReply(reply){
+ $("results").innerHTML="";
+ if(!reply)return;
+
+ const card=document.createElement("div");
+ card.className="result";
+
+ const meta=document.createElement("div");
+ meta.className="meta";
+ meta.textContent="LE MEILLEUR MESSAGE";
+
+ const p=document.createElement("p");
+ p.textContent=reply;
+
+ const copy=document.createElement("button");
+ copy.className="primary";
+ copy.textContent="Copier le message";
+ copy.onclick=async()=>{
+  try{
+   await navigator.clipboard.writeText(reply);
+   status("Message copié.");
+  }catch{
+   status("Copie indisponible.",true);
+  }
+ };
+
+ card.append(meta,p,copy);
+ $("results").append(card);
+}
 
 function renderHistory(){
  const root=$("history");
@@ -673,68 +637,19 @@ function renderHistory(){
   row.className="historyItem";
 
   const open=document.createElement("button");
-  open.textContent=item.date+" — "+item.transcript.slice(0,35);
+  open.textContent=item.date+" — "+(item.transcript||"").slice(0,35);
 
   open.onclick=()=>{
-   $("transcript").value=item.transcript;
+   $("transcript").value=item.transcript||"";
    $("context").value=item.context||"";
    $("scanPanel").style.display="block";
-
-   $("analysis").innerHTML="";
-
-   const analysis=item.analysis||{};
-
-   [
-    ["LECTURE",analysis.read],
-    ["TON CHOISI PAR WING",analysis.tone],
-    ["SIGNES D'INTÉRÊT",analysis.interest_signals],
-    ["PROCHAINE ÉTAPE",analysis.next_move]
-   ].forEach(([label,value])=>{
-    const p=document.createElement("p");
-    const strong=document.createElement("strong");
-    strong.textContent=label+": ";
-    p.append(strong,document.createTextNode(value||"Non déterminé"));
-    $("analysis").append(p);
-   });
-
-   $("results").innerHTML="";
-
-   const savedReply=item.best_reply||analysis.best_reply;
-
-   if(savedReply){
-    const card=document.createElement("div");
-    card.className="result";
-
-    const meta=document.createElement("div");
-    meta.className="meta";
-    meta.textContent="LE MEILLEUR MESSAGE";
-
-    const p=document.createElement("p");
-    p.textContent=savedReply;
-
-    const copy=document.createElement("button");
-    copy.className="primary";
-    copy.textContent="Copier le message";
-
-    copy.onclick=async()=>{
-     try{
-      await navigator.clipboard.writeText(savedReply);
-      status("Message copié.");
-     }catch{
-      status("Copie indisponible.",true);
-     }
-    };
-
-    card.append(meta,p,copy);
-    $("results").append(card);
-   }
-
+   showAnalysis(item.analysis||{});
+   showReply(item.best_reply||item.analysis?.best_reply);
    window.scrollTo({top:0,behavior:"smooth"});
   };
 
   const remove=document.createElement("button");
   remove.textContent="×";
-
   remove.onclick=()=>{
    history.splice(index,1);
    save("wing_elite_history",history);
@@ -748,7 +663,6 @@ function renderHistory(){
 
 $("clearHistory").onclick=()=>{
  if(!confirm("Effacer tout l'historique ?"))return;
-
  history=[];
  save("wing_elite_history",history);
  renderHistory();
